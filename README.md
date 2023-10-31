@@ -5,12 +5,12 @@ Ground Work for the Master's project
 
 <h3>Project Contributors</h3>
 
-| Name |  Email  |   Student ID  | 
-|:-----|:--------:|:--------:|
+| Name |  Email  
+|:-----|:--------:
 | Meera Tresa Sebastian   | `meeratresa.sebastian@sjsu.edu` 
-| Adesh Landge   | `adesh.landge@sjsu.edu` |  
-| Vineeth Hamilpur  | `vineeth.hamilpur@sjsu.edu` | 
-| Chiruhas Bobbadi   | `chiruhas.bobbadi@sjsu.edu` | 
+| Adesh Landge   | `adesh.landge@sjsu.edu` 
+| Vineeth Hamilpur  | `vineeth.hamilpur@sjsu.edu`  
+| Chiruhas Bobbadi   | `chiruhas.bobbadi@sjsu.edu` 
 
 ### Automated Meter Reading, Software Engineering, Image Processing, Deep Learning, Human-in-the-Loop
 ### Human-in-the-loop image-based Automated Meter Reading System

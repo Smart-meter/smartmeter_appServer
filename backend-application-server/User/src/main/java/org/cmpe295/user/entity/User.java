@@ -6,7 +6,9 @@ import org.cmpe295.user.entity.enums.ROLE;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDate;
 import java.util.Collection;
+import java.util.List;
 
 @Entity
 @Getter
@@ -28,6 +30,9 @@ public class User implements UserDetails {
     private Address address;
     @Enumerated(EnumType.STRING)
     private ROLE role;
+    private LocalDate joiningDate;
+    @OneToMany(mappedBy="user")
+    private List<UserUtilityLink> utilityLinks;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

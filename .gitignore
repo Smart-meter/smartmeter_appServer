@@ -22,3 +22,4 @@ rad.json
 TestResults.xml
 /.idea/
 /backend-application-server/User/target/
+/backend-application-server/MeterImages/target/

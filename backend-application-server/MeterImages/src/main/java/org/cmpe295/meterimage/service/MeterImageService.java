@@ -1,14 +1,15 @@
-package service;
+package org.cmpe295.meterimage.service;
 
 import jakarta.persistence.EntityNotFoundException;
-import model.MeterReadingRequest;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.cmpe295.meterimage.model.MeterReadingRequest;
 import org.cmpe295.user.entity.MeterReading;
 import org.cmpe295.user.entity.UtilityAccount;
 import org.cmpe295.user.repository.MeterReadingRepository;
 import org.cmpe295.user.repository.UtilityAccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDate;

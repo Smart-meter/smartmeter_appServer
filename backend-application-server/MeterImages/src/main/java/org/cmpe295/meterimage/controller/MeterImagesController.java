@@ -1,6 +1,6 @@
-package controller;
+package org.cmpe295.meterimage.controller;
 
-import model.MeterReadingRequest;
+import org.cmpe295.meterimage.model.MeterReadingRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import service.MeterImageService;
+import org.cmpe295.meterimage.service.MeterImageService;
 
 import java.io.IOException;
 

@@ -21,6 +21,6 @@ public class MeterReading {
     private Integer readingValue;
     private MeterImageMetadata meterImageMetadata;
     @ManyToOne
-    @JoinColumn(name="utilityAccountNumber", nullable=false, updatable = false, insertable = false,referencedColumnName = "utilityAccountNumber")
+    @JoinColumn(name="utilityAccountNumber", nullable=false,referencedColumnName = "utilityAccountNumber")
     private UtilityAccount utilityAccount;
 }

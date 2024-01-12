@@ -19,11 +19,12 @@ public class S3Service {
 
     private final AmazonS3 amazonS3;
 
-    public S3Service(AWSCredentialsProvider awsCredentialsProvider) {
+    public S3Service(AWSCredentialsProvider awsCredentialsProvider, String awsRegion, String s3BucketName) {
         amazonS3 = AmazonS3ClientBuilder.standard()
-                .withRegion("your-region") // Specify your AWS region
+                .withRegion(awsRegion) // Specify your AWS region
                 .withCredentials(new AWSStaticCredentialsProvider(awsCredentialsProvider.getCredentials()))
                 .build();
+        this.bucketName = s3BucketName;
     }
 
     public String uploadFile(MultipartFile file, Long utilityAccountNumber) throws IOException {

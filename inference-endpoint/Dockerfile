@@ -13,6 +13,6 @@ EXPOSE 80
 # Define environment variable
 ENV NAME World
 
-# Run app.py when the container launches
-CMD ["python", "inference.py"]
+# Run uvicorn when the container launches
+CMD ["uvicorn", "inference:app", "--host", "0.0.0.0", "--port", "80"]
 

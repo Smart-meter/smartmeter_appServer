@@ -14,5 +14,5 @@ EXPOSE 80
 ENV NAME World
 
 # Run uvicorn when the container launches
-CMD ["uvicorn", "inference:app", "--host", "0.0.0.0", "--port", "80"]
+CMD ["uvicorn", "app.inference:app", "--host", "0.0.0.0", "--port", "80"]
 

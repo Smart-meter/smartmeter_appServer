@@ -2,7 +2,6 @@ package org.cmpe295.user.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.cmpe295.user.entity.User;
 import org.cmpe295.user.model.UserDetailsResponse;
 import org.cmpe295.user.security.service.JWTService;
 import org.cmpe295.user.service.UserService;

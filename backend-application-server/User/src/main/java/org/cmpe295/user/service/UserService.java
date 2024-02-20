@@ -54,6 +54,14 @@ public class UserService {
                 response.setCurrentUtilityAccountNumber(userUtilityAccountDetails.getUtilityAccount().getUtilityAccountNumber());
                 logger.info("Found the latest active utility account linked to the user: "+ userUtilityAccountDetails.getUtilityAccount().getUtilityAccountNumber());
                 response.setDateOfLink(userUtilityAccountDetails.getDateOfLink());
+                Optional<MeterReading> meterReading = meterReadingRepository.findFirstByUtilityAccountOrderByDateOfReadingDescReadingIdDesc(
+                        utilityAccountRepository.findByUtilityAccountNumber(userUtilityAccountDetails.getUtilityAccount().getUtilityAccountNumber()).get()
+                );
+                if(meterReading.isPresent()){
+                    MeterReading latestReading = meterReading.get();
+                    response.setReadingValue(latestReading.getReadingValue());
+                    response.setDateOfReading(latestReading.getDateOfReading());
+                }
             }
 
         }else{
@@ -94,7 +102,7 @@ public class UserService {
             if(utilityAccount.isPresent()){
                 UserUtilityAccountDetails userUtilityAccountDetails = utilityAccount.get();
                 logger.info("Found the latest active utility account linked to the user: "+ userUtilityAccountDetails.getUtilityAccount().getUtilityAccountNumber());
-                Optional<MeterReading> meterReading = meterReadingRepository.findFirstByUtilityAccountOrderByDateOfReadingDesc(
+                Optional<MeterReading> meterReading = meterReadingRepository.findFirstByUtilityAccountOrderByDateOfReadingDescReadingIdDesc(
                         utilityAccountRepository.findByUtilityAccountNumber(userUtilityAccountDetails.getUtilityAccount().getUtilityAccountNumber()).get()
                 );
                 if(meterReading.isPresent()){
@@ -120,7 +128,7 @@ public class UserService {
             if(utilityAccount.isPresent()){
                 UserUtilityAccountDetails userUtilityAccountDetails = utilityAccount.get();
                 logger.info("Found the latest active utility account linked to the user: "+ userUtilityAccountDetails.getUtilityAccount().getUtilityAccountNumber());
-                Optional<MeterReading> meterReading = meterReadingRepository.findFirstByUtilityAccountOrderByDateOfReadingDesc(
+                Optional<MeterReading> meterReading = meterReadingRepository.findFirstByUtilityAccountOrderByDateOfReadingDescReadingIdDesc(
                         utilityAccountRepository.findByUtilityAccountNumber(userUtilityAccountDetails.getUtilityAccount().getUtilityAccountNumber()).get()
                 );
                 if(meterReading.isPresent()){

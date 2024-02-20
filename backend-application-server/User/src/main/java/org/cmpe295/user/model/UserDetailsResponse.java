@@ -17,4 +17,6 @@ public class UserDetailsResponse {
     private String email;
     private Long currentUtilityAccountNumber;
     private LocalDate dateOfLink;
+    private LocalDate dateOfReading;
+    private Integer readingValue;
 }

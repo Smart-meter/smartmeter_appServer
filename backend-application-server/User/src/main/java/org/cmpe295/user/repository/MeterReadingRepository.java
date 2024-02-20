@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 @Repository
 public interface MeterReadingRepository extends JpaRepository<MeterReading, Long> {
-    Optional<MeterReading> findFirstByUtilityAccountOrderByDateOfReadingDesc(UtilityAccount utilityAccount);
+    Optional<MeterReading> findFirstByUtilityAccountOrderByDateOfReadingDescReadingIdDesc(UtilityAccount utilityAccount);
 
 }

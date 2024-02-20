@@ -15,13 +15,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
-
+import org.springframework.core.io.Resource;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -58,8 +59,8 @@ public class MeterImageService {
         meterReading.setImageURL(imageUrl);
         //Get the predicted Meter Reading
         //logger.info("Calling the inference endpoint to get meter reading predction");
-        //Integer predictedReadingValue = getPredictedReadingValue(request.getImageFile());
-        //meterReading.setReadingValue(predictedReadingValue);
+        Integer predictedReadingValue = getPredictedReadingValue(request.getImageFile());
+        meterReading.setReadingValue(predictedReadingValue);
         // Save the MeterReading entity to the database
         meterReadingRepository.save(meterReading);
         logger.info("Meter Reading entry saved");
@@ -74,56 +75,47 @@ public class MeterImageService {
 
         // Create the RestTemplate
         RestTemplate restTemplate = new RestTemplate();
-
-        // Set headers
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-
-        // Use InputStreamResource to handle binary data
-        InputStreamResource imageResource;
         try {
-            imageResource = new InputStreamResource(imageFile.getInputStream());
-        } catch (IOException e) {
-            logger.error("Error reading the image file");
-            throw new RuntimeException(e);
-        }
+            // Convert MultipartFile to Resource
+            Resource fileResource = new ByteArrayResource(imageFile.getBytes()) {
+                @Override
+                public String getFilename() {
+                    return imageFile.getOriginalFilename();
+                }
+            };
 
-        try {
-            // Use MultiValueMap to handle the multipart request without manually setting the boundary
+            // Prepare headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+            // Prepare request
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-            body.add("file", new HttpEntity<>(imageResource, headers));
+            body.add("file", fileResource);
+            HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
-            // Set the body and headers in the requestEntity
-            RequestEntity<MultiValueMap<String, Object>> requestEntity =
-                    new RequestEntity<>(body, headers, HttpMethod.POST, new URI(predictEndpoint));
+            // Send HTTP POST request to FastAPI endpoint
+            ResponseEntity<String> responseEntity = restTemplate.exchange(
+                    predictEndpoint,
+                    HttpMethod.POST,
+                    requestEntity,
+                    String.class
+            );
 
-            logger.info("Request Entity formed");
-
-            // Send the request and get the response
-            ResponseEntity<byte[]> responseEntity = restTemplate.exchange(requestEntity, byte[].class);
-
-            logger.info("Hit the prediction endpoint and response received");
-
-            // Check if the request was successful (HTTP status code 200)
-            if (responseEntity.getStatusCode().is2xxSuccessful()) {
-                // Parse the response to extract the predicted reading value
-                byte[] responseBodyBytes = responseEntity.getBody();
-                // Specify the correct encoding when decoding the byte sequence
-                String responseBodyString = new String(responseBodyBytes, StandardCharsets.UTF_8);
-                Integer predictedReadingValue = parseResponse(responseBodyString);
-                logger.info(predictedReadingValue.toString() + " is the predicted reading");
-                return predictedReadingValue;
+            // Process response
+            HttpStatus statusCode = (HttpStatus) responseEntity.getStatusCode();
+            if (statusCode == HttpStatus.OK) {
+                String responseBody = responseEntity.getBody();
+                System.out.println("Response frm python-->"+responseBody);
+                // Process response body, extract predicted value
+                // For example, you can convert responseBody to Integer and return it
             } else {
-                // Handle non-successful response (e.g., log error, throw exception)
-                System.err.println("Prediction request failed with status code: " + responseEntity.getStatusCode());
-                logger.info("Prediction Request Failed");
+                // Handle non-200 status code
+                System.err.println("Error: " + responseEntity.getStatusCodeValue() + " " + ((HttpStatus) responseEntity.getStatusCode()).getReasonPhrase());
             }
-        } catch (Exception e) {
-            // Handle exceptions (e.g., log error, throw exception)
+        } catch (IOException e) {
             e.printStackTrace();
-            logger.error("Error during prediction request");
+            // Handle IO exception
         }
-
         // Return a default value or handle the error case
         return null;
     }

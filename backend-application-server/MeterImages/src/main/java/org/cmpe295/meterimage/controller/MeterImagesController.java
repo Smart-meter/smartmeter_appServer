@@ -19,18 +19,14 @@ public class MeterImagesController {
     private MeterImageService meterImagesService;
     private static final Logger logger = LoggerFactory.getLogger(MeterImagesController.class);
     @PostMapping("/upload")
-    public ResponseEntity<String> uploadImage(@ModelAttribute MeterReadingRequest request) {
-        try {
+    public ResponseEntity<Integer> uploadImage(@ModelAttribute MeterReadingRequest request) throws IOException {
+
             logger.info("Received image upload request: {}", request);
-            String imageUrl = meterImagesService.uploadImage(request);
-            logger.info("Image uploaded successfully. URL: {}", imageUrl);
-            return ResponseEntity.ok(imageUrl);
+            Integer predictedReadingValue = meterImagesService.uploadImage(request);
+            logger.info("Image uploaded successfully");
+            return ResponseEntity.ok(predictedReadingValue);
 
 
-        } catch (IOException e) {
-            logger.error("Failed to upload image", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to upload image");
-        }
     }
     @PostMapping("/testmeterimageupload")
     public ResponseEntity<String> testMeterImage(

@@ -41,7 +41,7 @@ public class MeterImageService {
 
     private static final Logger logger = LoggerFactory.getLogger(MeterImageService.class);
 
-    public String uploadImage(MeterReadingRequest request) throws IOException {
+    public Integer uploadImage(MeterReadingRequest request) throws IOException {
         // Validate utilityAccountNumber, check if the account exists, etc.
         Optional<UtilityAccount> utilityAccount = utilityAccountRepository.findByUtilityAccountNumber(request.getUtilityAccountNumber());
         if (utilityAccount == null) {
@@ -64,7 +64,7 @@ public class MeterImageService {
         // Save the MeterReading entity to the database
         meterReadingRepository.save(meterReading);
         logger.info("Meter Reading entry saved");
-        return imageUrl;
+        return predictedReadingValue;
     }
 
     private Integer getPredictedReadingValue(MultipartFile imageFile) {

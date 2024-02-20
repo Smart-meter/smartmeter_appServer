@@ -106,6 +106,23 @@ public class MeterImageService {
             if (statusCode == HttpStatus.OK) {
                 String responseBody = responseEntity.getBody();
                 System.out.println("Response frm python-->"+responseBody);
+                try {
+                    // Parse JSON array
+                    ObjectMapper mapper = new ObjectMapper();
+                    String[] values = mapper.readValue(responseBody, String[].class);
+
+                    // Extract integer from the string
+                    if (values.length > 0) {
+                        String valueString = values[0];
+                        // Remove non-numeric characters
+                        valueString = valueString.replaceAll("[^\\d]", "");
+                        // Convert to integer and return
+                        return Integer.parseInt(valueString);
+                    }
+                } catch (Exception e) {
+                    // Handle parsing error
+                    System.err.println("Error parsing response body: " + e.getMessage());
+                }
                 // Process response body, extract predicted value
                 // For example, you can convert responseBody to Integer and return it
             } else {

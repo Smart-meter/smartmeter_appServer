@@ -1,4 +1,4 @@
-package org.cmpe295.user;
+package org.cmpe295.user.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +19,11 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseEntity<String> handleUsernameNotFoundException(UsernameNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found: " + ex.getMessage());
+    }
+    @ExceptionHandler(UtilityAccountNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseEntity<String> handleUtilityAccountNotFoundException(UtilityAccountNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("UtilityAccount not found: " + ex.getMessage());
     }
     // Generic exception handler
     @ExceptionHandler(Exception.class)

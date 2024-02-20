@@ -2,16 +2,20 @@ package org.cmpe295.user.service;
 
 import lombok.RequiredArgsConstructor;
 import org.cmpe295.user.controller.UserController;
+import org.cmpe295.user.entity.MeterReading;
 import org.cmpe295.user.entity.User;
 import org.cmpe295.user.entity.UtilityAccount;
+import org.cmpe295.user.exceptions.UtilityAccountNotFoundException;
 import org.cmpe295.user.model.UserDetailsResponse;
 import org.cmpe295.user.model.UserUtilityAccountDetails;
+import org.cmpe295.user.repository.MeterReadingRepository;
 import org.cmpe295.user.repository.UserRepository;
 import org.cmpe295.user.repository.UtilityAccountRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -24,6 +28,8 @@ public class UserService {
     private UserRepository userRepository;
     @Autowired
     private UtilityAccountRepository utilityAccountRepository;
+    @Autowired
+    private MeterReadingRepository meterReadingRepository;
 
     /**
      * End point to return user - utility accoubt details
@@ -67,15 +73,12 @@ public class UserService {
         if (isBillAmountDue(username)) {
             messages.append("Your bill amount is due. ");
         }
-
         if (isMeterImageUploadDue(username)) {
             messages.append("Meter image upload is due. ");
         }
-
         if (hasErrorInMeterReading(username)) {
             messages.append("There is an error in predicting the meter reading. ");
         }
-
         return messages.toString();
     }
     private boolean isBillAmountDue(String username) {
@@ -83,9 +86,30 @@ public class UserService {
         return false;
     }
 
-    private boolean isMeterImageUploadDue(String username) {
+    private boolean isMeterImageUploadDue(String userName) {
         // ... logic to check if meter image upload is due
-        return true;
+        Optional<User> userOptional = userRepository.findByEmail(userName);
+        if (userOptional.isPresent()) {
+            Optional<UserUtilityAccountDetails> utilityAccount = utilityAccountRepository.findFirstActiveUtilityAccountDetailsByUserId(userOptional.get().getId());
+            if(utilityAccount.isPresent()){
+                UserUtilityAccountDetails userUtilityAccountDetails = utilityAccount.get();
+                logger.info("Found the latest active utility account linked to the user: "+ userUtilityAccountDetails.getUtilityAccount().getUtilityAccountNumber());
+                Optional<MeterReading> meterReading = meterReadingRepository.findFirstByUtilityAccountOrderByDateOfReadingDesc(
+                        utilityAccountRepository.findByUtilityAccountNumber(userUtilityAccountDetails.getUtilityAccount().getUtilityAccountNumber()).get()
+                );
+                if(meterReading.isPresent()){
+                    MeterReading latestReading = meterReading.get();
+                    LocalDate lastUploadDate = latestReading.getDateOfReading();
+                    LocalDate currentDate = LocalDate.now();
+                    return lastUploadDate.isBefore(currentDate.minusDays(30));
+                }else{
+                    return true;
+                }
+            }
+        }else{
+            throw new UsernameNotFoundException(userName);
+        }
+        return false;
     }
 
     private boolean hasErrorInMeterReading(String username) {

@@ -19,6 +19,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 @Service
 @RequiredArgsConstructor
@@ -78,18 +80,21 @@ public class UserService {
      * @param username
      * @return
      */
-    public String generateMessages(String username) {
-        StringBuilder messages = new StringBuilder();
+    public List<String> generateMessages(String username) {
+        List<String> messages = new ArrayList<>();
+        //StringBuilder messages = new StringBuilder();
         if (isBillAmountDue(username)) {
-            messages.append("Your bill amount is due. ");
+            messages.add("Your bill amount is due. ");
         }
         if (isMeterImageUploadDue(username)) {
-            messages.append("Meter image upload is due. ");
+            messages.add("Meter image upload is due. ");
         }
         if (hasErrorInMeterReading(username)) {
-            messages.append("There is an error in predicting the meter reading. ");
+            messages.add("There is an error in predicting the meter reading. ");
         }
-        return messages.toString();
+        if(messages.size()==0)
+            messages.add("No messages. Everything up to date");
+        return messages;
     }
     private boolean isBillAmountDue(String username) {
         // ... logic to check if bill amount is due

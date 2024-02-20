@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -53,19 +54,16 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
     @GetMapping("/messages")
-    public ResponseEntity<String> sendMessages(HttpServletRequest request) {
+    public ResponseEntity<List<String>> sendMessages(HttpServletRequest request) {
         UserDetails userDetails = getCurrentUserDetails();
 
         if (userDetails != null) {
             logger.info("Found user details " + userDetails);
             // Call the service method to check conditions and generate messages
-            String messages = userService.generateMessages(userDetails.getUsername());
+            List<String> messages = userService.generateMessages(userDetails.getUsername());
             // Check if there are any messages to send
-            if (StringUtils.hasText(messages)) {
-                return ResponseEntity.ok(messages);
-            } else {
-                return ResponseEntity.ok("No messages");
-            }
+            return ResponseEntity.ok(messages);
+
         }
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

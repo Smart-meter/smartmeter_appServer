@@ -58,8 +58,9 @@ public class MeterImageService {
         // Save the URL in the MeterReading entity
         meterReading.setImageURL(imageUrl);
         //Get the predicted Meter Reading
-        //logger.info("Calling the inference endpoint to get meter reading predction");
+        logger.info("Calling the inference endpoint to get meter reading predction");
         Integer predictedReadingValue = getPredictedReadingValue(request.getImageFile());
+        logger.info("The predicted reading value: "+predictedReadingValue);
         meterReading.setReadingValue(predictedReadingValue);
         // Save the MeterReading entity to the database
         meterReadingRepository.save(meterReading);
@@ -110,12 +111,12 @@ public class MeterImageService {
                     // Parse JSON array
                     ObjectMapper mapper = new ObjectMapper();
                     String[] values = mapper.readValue(responseBody, String[].class);
-
                     // Extract integer from the string
                     if (values.length > 0) {
                         String valueString = values[0];
                         // Remove non-numeric characters
                         valueString = valueString.replaceAll("[^\\d]", "");
+                        logger.info("Meter Reading is "+valueString);
                         // Convert to integer and return
                         return Integer.parseInt(valueString);
                     }

@@ -63,5 +63,8 @@ async def predict(file: UploadFile = File(...)):
     result = extracted_text.strip()
     print('meter')
     print(result)
+    print('************************')
+    meterReading = re.findall(r'\b\d{5}\b', result)
+    print(f'The meter reading{meterReading}')
     print('*')
     return re.findall(r'\b\d{5}\b', result)

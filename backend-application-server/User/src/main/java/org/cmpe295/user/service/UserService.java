@@ -112,8 +112,25 @@ public class UserService {
         return false;
     }
 
-    private boolean hasErrorInMeterReading(String username) {
+    private boolean hasErrorInMeterReading(String userName) {
         // ... logic to check if there is an error in predicting the meter reading
+        Optional<User> userOptional = userRepository.findByEmail(userName);
+        if (userOptional.isPresent()) {
+            Optional<UserUtilityAccountDetails> utilityAccount = utilityAccountRepository.findFirstActiveUtilityAccountDetailsByUserId(userOptional.get().getId());
+            if(utilityAccount.isPresent()){
+                UserUtilityAccountDetails userUtilityAccountDetails = utilityAccount.get();
+                logger.info("Found the latest active utility account linked to the user: "+ userUtilityAccountDetails.getUtilityAccount().getUtilityAccountNumber());
+                Optional<MeterReading> meterReading = meterReadingRepository.findFirstByUtilityAccountOrderByDateOfReadingDesc(
+                        utilityAccountRepository.findByUtilityAccountNumber(userUtilityAccountDetails.getUtilityAccount().getUtilityAccountNumber()).get()
+                );
+                if(meterReading.isPresent()){
+                    MeterReading latestReading = meterReading.get();
+                    return latestReading.getReadingValue() == null;
+                }
+            }
+        }else{
+            throw new UsernameNotFoundException(userName);
+        }
         return false;
     }
 }

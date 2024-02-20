@@ -24,6 +24,12 @@ public class UserService {
     private UserRepository userRepository;
     @Autowired
     private UtilityAccountRepository utilityAccountRepository;
+
+    /**
+     * End point to return user - utility accoubt details
+     * @param userName
+     * @return
+     */
     public UserDetailsResponse getUserDetails(String userName){
         UserDetailsResponse response = new UserDetailsResponse();
         // Use the findByEmail method to get the additional user details
@@ -49,5 +55,41 @@ public class UserService {
             throw new IllegalArgumentException();
         }
         return  response;
+    }
+
+    /**
+     * End point to return messages for the user
+     * @param username
+     * @return
+     */
+    public String generateMessages(String username) {
+        StringBuilder messages = new StringBuilder();
+        if (isBillAmountDue(username)) {
+            messages.append("Your bill amount is due. ");
+        }
+
+        if (isMeterImageUploadDue(username)) {
+            messages.append("Meter image upload is due. ");
+        }
+
+        if (hasErrorInMeterReading(username)) {
+            messages.append("There is an error in predicting the meter reading. ");
+        }
+
+        return messages.toString();
+    }
+    private boolean isBillAmountDue(String username) {
+        // ... logic to check if bill amount is due
+        return false;
+    }
+
+    private boolean isMeterImageUploadDue(String username) {
+        // ... logic to check if meter image upload is due
+        return true;
+    }
+
+    private boolean hasErrorInMeterReading(String username) {
+        // ... logic to check if there is an error in predicting the meter reading
+        return false;
     }
 }

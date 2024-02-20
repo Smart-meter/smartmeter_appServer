@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,17 +29,45 @@ public class UserController {
     @Autowired
     private JWTService jwtService;
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
-    @GetMapping("/details")
-    public ResponseEntity<UserDetailsResponse> getUserDetails(HttpServletRequest request) {
+
+    // Common method to retrieve current user details
+    private UserDetails getCurrentUserDetails() {
         // Retrieve authentication from SecurityContextHolder
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         logger.info("Retrieved authentication info from the security context holder");
+
         if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
             logger.info("Found user details in security context holder authentication object");
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            logger.info("Found user details "+userDetails);
+            return (UserDetails) authentication.getPrincipal();
+        }
+        return null;
+    }
+    @GetMapping("/details")
+    public ResponseEntity<UserDetailsResponse> getUserDetails(HttpServletRequest request) {
+        UserDetails userDetails = getCurrentUserDetails();
+        if (userDetails != null) {
+            logger.info("Found user details " + userDetails);
             return ResponseEntity.ok(userService.getUserDetails(userDetails.getUsername()));
         }
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+    @GetMapping("/messages")
+    public ResponseEntity<String> sendMessages(HttpServletRequest request) {
+        UserDetails userDetails = getCurrentUserDetails();
+
+        if (userDetails != null) {
+            logger.info("Found user details " + userDetails);
+            // Call the service method to check conditions and generate messages
+            String messages = userService.generateMessages(userDetails.getUsername());
+            // Check if there are any messages to send
+            if (StringUtils.hasText(messages)) {
+                return ResponseEntity.ok(messages);
+            } else {
+                return ResponseEntity.ok("No messages");
+            }
+        }
+
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 

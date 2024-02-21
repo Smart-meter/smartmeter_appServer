@@ -50,21 +50,21 @@ public class UserService {
             response.setLastname(user.getLastName());
             response.setFirstname(user.getFirstName());
             response.setReadingValue(0);
-            response.setDateOfReading(LocalDate.now());
+            response.setDateOfReading(LocalDate.now().toString());
             //Write methods to get this
             Optional<UserUtilityAccountDetails> utilityAccount = utilityAccountRepository.findFirstActiveUtilityAccountDetailsByUserId(user.getId());
             if(utilityAccount.isPresent()){
                 UserUtilityAccountDetails userUtilityAccountDetails = utilityAccount.get();
                 response.setCurrentUtilityAccountNumber(userUtilityAccountDetails.getUtilityAccount().getUtilityAccountNumber());
                 logger.info("Found the latest active utility account linked to the user: "+ userUtilityAccountDetails.getUtilityAccount().getUtilityAccountNumber());
-                response.setDateOfLink(userUtilityAccountDetails.getDateOfLink());
+                response.setDateOfLink(userUtilityAccountDetails.getDateOfLink().toString());
                 Optional<MeterReading> meterReading = meterReadingRepository.findFirstByUtilityAccountOrderByDateOfReadingDescReadingIdDesc(
                         utilityAccountRepository.findByUtilityAccountNumber(userUtilityAccountDetails.getUtilityAccount().getUtilityAccountNumber()).get()
                 );
                 if(meterReading.isPresent()){
                     MeterReading latestReading = meterReading.get();
                     response.setReadingValue(latestReading.getReadingValue()!=null?latestReading.getReadingValue():0);
-                    response.setDateOfReading(latestReading.getDateOfReading()!=null?latestReading.getDateOfReading():LocalDate.now());
+                    response.setDateOfReading(latestReading.getDateOfReading()!=null?latestReading.getDateOfReading().toString():LocalDate.now().toString());
                 }
             }
 

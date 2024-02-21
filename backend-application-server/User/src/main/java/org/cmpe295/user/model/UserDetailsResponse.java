@@ -16,7 +16,7 @@ public class UserDetailsResponse {
     private String lastname;
     private String email;
     private Long currentUtilityAccountNumber;
-    private LocalDate dateOfLink;
-    private LocalDate dateOfReading;
+    private String dateOfLink;
+    private String dateOfReading;
     private Integer readingValue;
 }

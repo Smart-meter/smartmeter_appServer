@@ -49,7 +49,7 @@ public class UserService {
             response.setEmail(user.getEmail());
             response.setLastname(user.getLastName());
             response.setFirstname(user.getFirstName());
-            response.setReadingValue(0);
+            response.setReadingValue(String.valueOf(0));
             response.setDateOfReading(LocalDate.now().toString());
             //Write methods to get this
             Optional<UserUtilityAccountDetails> utilityAccount = utilityAccountRepository.findFirstActiveUtilityAccountDetailsByUserId(user.getId());
@@ -63,7 +63,7 @@ public class UserService {
                 );
                 if(meterReading.isPresent()){
                     MeterReading latestReading = meterReading.get();
-                    response.setReadingValue(latestReading.getReadingValue()!=null?latestReading.getReadingValue():0);
+                    response.setReadingValue(latestReading.getReadingValue()!=null?String.valueOf(latestReading.getReadingValue()):String.valueOf(0));
                     response.setDateOfReading(latestReading.getDateOfReading()!=null?latestReading.getDateOfReading().toString():LocalDate.now().toString());
                 }
             }

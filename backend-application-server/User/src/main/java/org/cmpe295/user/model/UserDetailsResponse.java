@@ -18,5 +18,5 @@ public class UserDetailsResponse {
     private Long currentUtilityAccountNumber;
     private String dateOfLink;
     private String dateOfReading;
-    private Integer readingValue;
+    private String readingValue;
 }

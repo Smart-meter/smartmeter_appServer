@@ -11,8 +11,8 @@ from io import BytesIO
 from PIL import Image
 
 # AWS credentials
-aws_access_key_id = "AKIA3K66FWVLPSQ56HM3"
-aws_secret_access_key = "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"
+aws_access_key_id = ""
+aws_secret_access_key = ""
 aws_region = "us-east-2"
 
 print("Import of libraries successful")

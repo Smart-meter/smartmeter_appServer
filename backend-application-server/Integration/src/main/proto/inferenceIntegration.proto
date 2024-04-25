@@ -1,0 +1,10 @@
+syntax = "proto3";
+message Image {
+  bytes data = 1;
+}
+message PredictionResponse {
+  int32 value = 1;
+}
+service PredictionService {
+  rpc Predict (Image) returns (PredictionResponse);
+}

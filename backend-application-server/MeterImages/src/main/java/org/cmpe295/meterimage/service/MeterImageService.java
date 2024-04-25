@@ -43,7 +43,8 @@ public class MeterImageService {
 
     public Integer uploadImage(MeterReadingRequest request) throws IOException {
         // Validate utilityAccountNumber, check if the account exists, etc.
-        Optional<UtilityAccount> utilityAccount = utilityAccountRepository.findByUtilityAccountNumber(request.getUtilityAccountNumber());
+        Optional<UtilityAccount> utilityAccount = utilityAccountRepository.findByUtilityAccountNumber(
+                request.getUtilityAccountNumber());
         if (utilityAccount == null) {
             logger.error("Utility Account Not Found");
             throw new EntityNotFoundException("UtilityAccount not found for utility account number: " + request.getUtilityAccountNumber());

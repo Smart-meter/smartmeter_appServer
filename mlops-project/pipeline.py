@@ -37,6 +37,7 @@ class MLPipeline:
         project_config_path = pathlib.Path(project_config_path)
         logger.debug(project_config_path.parent)
         logger.debug(project_config_path.stem)
+        self.logger = logger
         self.config = config.Config(
             project_config_path.parent, project_config_path.stem
         )
@@ -67,7 +68,7 @@ class MLPipeline:
 
     @pipeline_task
     def load_data(self) -> None:
-        # ...
+        self.logger.info("Loading data...")
         pass
 
     @pipeline_task
@@ -132,6 +133,11 @@ class MLPipeline:
             raise Exception("Tasks do not form a DAG")
 
         return sorted_nodes
+
+    def get_dataset(self) -> None:
+        self.dataset = dataset_factory.DatasetFactory(
+            self.config.items.datasets, self.artifact_dir, self.logger
+        ).get(self.config.items.dataset)
 if __name__ == "__main__":
     #Create the parser object, initializing it with the description of the program
     parser = argparse.ArgumentParser(

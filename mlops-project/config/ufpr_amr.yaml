@@ -1,5 +1,7 @@
 #path to data
 data_path:
+#dataset
+dataset: amr
 # use 10% of the data for evaluation
 test_split: 0.1
 # pipeline tasks

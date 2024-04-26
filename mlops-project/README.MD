@@ -8,3 +8,5 @@ The dependenices are being updated to the requirements.txt file. Create a virtua
 requirements.txt file using the command - pip install -r requirements.txt.
 
 The detailed logs are being logged in the logs folder
+
+The artifacts will be available in the artifacts folder

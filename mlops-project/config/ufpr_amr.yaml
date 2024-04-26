@@ -18,6 +18,6 @@ tasks:
         - evaluate_model
     evaluate_model:
       next:
-        - create_plots
-    create_plots:
+        - create_report
+    create_report:
       next: []

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 public class CustomSearchController {
     @Autowired
     private UtilityAccountRepository utilityAccountRepository;
-    @GetMapping("/searchByAddress")
+    @PostMapping("/searchByAddress")
     public ResponseEntity<?> searchUtilityAccount(@RequestBody AddressDetails addressDetails) {
         // Extract address details from the request body
         String street = addressDetails.getStreet();

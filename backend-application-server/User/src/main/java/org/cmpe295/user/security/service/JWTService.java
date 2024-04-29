@@ -11,14 +11,14 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 
 @Service
 public class JWTService {
+    //Implement an in-memory token invalidation mechanism
+    private Set<String> invalidatedTokens = new HashSet<>();
     private static final String SECRET_KEY = "28482B4D6251655468576D597133743677397A24432646294A404E635266556A";
     // 6 hours
     private static final int JWT_VALIDITY_DURATION = 1000*60*60*6;
@@ -84,6 +84,14 @@ public class JWTService {
                 .claim(ROLE_KEY_JWT, user.getRole())
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
+    }
+    //Methods for token invalidation
+    public void invalidateToken(String jwtToken) {
+        invalidatedTokens.add(jwtToken);
+    }
+
+    public boolean isTokenBlacklisted(String jwtToken) {
+        return invalidatedTokens.contains(jwtToken);
     }
 
 }

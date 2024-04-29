@@ -2,6 +2,8 @@ package org.cmpe295.user.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.cmpe295.user.model.MessageResponse;
+import org.cmpe295.user.model.UpdateUserRequest;
 import org.cmpe295.user.model.UserDetailsResponse;
 import org.cmpe295.user.security.service.JWTService;
 import org.cmpe295.user.service.UserService;
@@ -14,9 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -54,19 +54,38 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
     @GetMapping("/messages")
-    public ResponseEntity<List<String>> sendMessages(HttpServletRequest request) {
+    public ResponseEntity<List<MessageResponse>> sendMessages(HttpServletRequest request) {
         UserDetails userDetails = getCurrentUserDetails();
 
         if (userDetails != null) {
             logger.info("Found user details " + userDetails);
             // Call the service method to check conditions and generate messages
-            List<String> messages = userService.generateMessages(userDetails.getUsername());
+            List<MessageResponse> messages = userService.generateMessages(userDetails.getUsername());
             // Check if there are any messages to send
             return ResponseEntity.ok(messages);
 
         }
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+    @PutMapping("/update")
+    public ResponseEntity<UserDetailsResponse> updateUser(@RequestBody UpdateUserRequest updateUserRequest) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        logger.info("Retrieved authentication info from the security context holder");
+        UserDetails userDetails = getCurrentUserDetails();
+        try{
+            if (userDetails != null) {
+                logger.info("Found user details " + userDetails);
+                //Call the user service to update the user details
+                return  ResponseEntity.ok(userService.updateUserDetails(userDetails.getUsername(), updateUserRequest));
+            }else{
+                //Did not find user details from the JWT token
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+        }catch(Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
     }
 
 }

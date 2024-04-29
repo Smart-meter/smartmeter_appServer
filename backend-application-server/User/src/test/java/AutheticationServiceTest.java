@@ -1,12 +1,25 @@
+import org.cmpe295.user.entity.User;
+import org.cmpe295.user.entity.enums.ROLE;
+import org.cmpe295.user.model.AuthenticationRequest;
+import org.cmpe295.user.model.AuthenticationResponse;
+import org.cmpe295.user.model.RegisterRequest;
 import org.cmpe295.user.repository.UserRepository;
 import org.cmpe295.user.security.service.JWTService;
 import org.cmpe295.user.service.AuthenticationService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 public class AutheticationServiceTest {
     @Mock
@@ -31,7 +44,7 @@ public class AutheticationServiceTest {
     @Test
     public void testRegister() {
         // Given
-        RegisterRequest request = new RegisterRequest("John", "Doe", "john@example.com", "password", "ROLE_USER");
+        RegisterRequest request = new RegisterRequest("John", "Doe", "john@example.com", "password", ROLE.ADMIN);
         User user = User.builder()
                 .firstName(request.getFirstname())
                 .lastName(request.getLastname())
@@ -61,7 +74,7 @@ public class AutheticationServiceTest {
                 .lastName("Doe")
                 .email("john@example.com")
                 .password("encodedPassword")
-                .role("ROLE_USER")
+                .role(ROLE.ADMIN)
                 .build();
         when(userRepository.findByEmail(any())).thenReturn(java.util.Optional.of(user));
         when(jwtService.generateToken(any())).thenReturn("mockedJWTToken");

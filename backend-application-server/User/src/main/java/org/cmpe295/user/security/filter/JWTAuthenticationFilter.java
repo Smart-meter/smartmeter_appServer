@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.cmpe295.user.security.service.JWTService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,7 +20,9 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 public class JWTAuthenticationFilter extends OncePerRequestFilter {
+    @Autowired
     private final JWTService jwtService;
+    @Autowired
     private final UserDetailsService userService;
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -36,6 +39,11 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
         }
         //Extract the Bearer token from request header
         jwtToken = authHeader.substring(7);
+        if (jwtToken != null && jwtService.isTokenBlacklisted(jwtToken)) {
+            // Token is blacklisted, redirect user to login
+            response.sendRedirect("/login");
+            return;
+        }
         //Extract the username from the jwt token
         email = jwtService.extractUserName(jwtToken);
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {

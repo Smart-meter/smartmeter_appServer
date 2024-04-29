@@ -5,17 +5,24 @@ import org.cmpe295.user.controller.UserController;
 import org.cmpe295.user.entity.MeterReading;
 import org.cmpe295.user.entity.User;
 import org.cmpe295.user.entity.UtilityAccount;
+import org.cmpe295.user.entity.enums.ACTION;
 import org.cmpe295.user.exceptions.UtilityAccountNotFoundException;
+import org.cmpe295.user.model.MessageResponse;
+import org.cmpe295.user.model.UpdateUserRequest;
 import org.cmpe295.user.model.UserDetailsResponse;
 import org.cmpe295.user.model.UserUtilityAccountDetails;
 import org.cmpe295.user.repository.MeterReadingRepository;
 import org.cmpe295.user.repository.UserRepository;
 import org.cmpe295.user.repository.UtilityAccountRepository;
+import org.cmpe295.user.security.service.JWTService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -32,6 +39,8 @@ public class UserService {
     private UtilityAccountRepository utilityAccountRepository;
     @Autowired
     private MeterReadingRepository meterReadingRepository;
+
+    private final PasswordEncoder passwordEncoder;
 
     /**
      * End point to return user - utility accoubt details
@@ -74,26 +83,59 @@ public class UserService {
         }
         return  response;
     }
+    public UserDetailsResponse updateUserDetails(String userName, UpdateUserRequest updateUserRequest){
+        UserDetailsResponse response = new UserDetailsResponse();
+        try {
+            Optional<User> userOptional = userRepository.findByEmail(userName);
+            if (userOptional.isPresent()) {
+                logger.info("Found the user corresponding to the username/email id");
+                User user = userOptional.get();
+                // Update only if the fields are provided in the request body
+                if (updateUserRequest.getFirstname() != null) {
+                    user.setFirstName(updateUserRequest.getFirstname());
+                }
+                if (updateUserRequest.getLastname() != null) {
+                    user.setLastName(updateUserRequest.getLastname());
+                }
+                if (updateUserRequest.getPassword() != null) {
+                    user.setPassword(passwordEncoder.encode(updateUserRequest.getPassword()));
+
+                }
+                final User updatedUser = userRepository.save(user);
+
+                //Set the response
+                response = getUserDetails(userName);
+
+            } else {
+                logger.error("Couldn't find the user corresponding to username/email: " + userName);
+                throw new IllegalArgumentException();
+            }
+        }catch (Exception e) {
+            logger.error(e.getMessage());
+            throw e;
+        }
+        return response;
+    }
 
     /**
      * End point to return messages for the user
      * @param username
      * @return
      */
-    public List<String> generateMessages(String username) {
-        List<String> messages = new ArrayList<>();
+    public List<MessageResponse> generateMessages(String username) {
+        List<MessageResponse> messages = new ArrayList<>();
         //StringBuilder messages = new StringBuilder();
         if (isBillAmountDue(username)) {
-            messages.add("Your bill amount is due. ");
+            messages.add(new MessageResponse(ACTION.BILL_AMOUNT_DUE, "Your bill amount is due. ") );
         }
         if (isMeterImageUploadDue(username)) {
-            messages.add("Meter image upload is due. ");
+            messages.add(new MessageResponse(ACTION.CAPTURE_IMAGE,"Meter image upload is due. "));
         }
         if (hasErrorInMeterReading(username)) {
-            messages.add("There is an error in predicting the meter reading. ");
+            messages.add(new MessageResponse(ACTION.MANUAL_METER_READING,"There is an error in predicting the meter reading. "));
         }
         if(messages.size()==0)
-            messages.add("No messages. Everything up to date");
+            messages.add(new MessageResponse(ACTION.NO_ACTION,"No messages. Everything up to date"));
         return messages;
     }
     private boolean isBillAmountDue(String username) {

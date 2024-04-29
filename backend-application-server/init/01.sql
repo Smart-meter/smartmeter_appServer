@@ -1,2 +1,3 @@
 CREATE DATABASE IF NOT EXISTS utilitymanagement;
+CREATE DATABASE IF NOT EXISTS utilityaccount;
 

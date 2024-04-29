@@ -59,7 +59,7 @@ public class UserController {
 
         if (userDetails != null) {
             logger.info("Found user details " + userDetails);
-            // Call the service method to check conditions and generate messages
+            // Call the org.cmpe295.utilityaccount.service method to check conditions and generate messages
             List<MessageResponse> messages = userService.generateMessages(userDetails.getUsername());
             // Check if there are any messages to send
             return ResponseEntity.ok(messages);
@@ -76,7 +76,7 @@ public class UserController {
         try{
             if (userDetails != null) {
                 logger.info("Found user details " + userDetails);
-                //Call the user service to update the user details
+                //Call the user org.cmpe295.utilityaccount.service to update the user details
                 return  ResponseEntity.ok(userService.updateUserDetails(userDetails.getUsername(), updateUserRequest));
             }else{
                 //Did not find user details from the JWT token

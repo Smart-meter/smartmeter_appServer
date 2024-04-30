@@ -1,6 +1,8 @@
 package org.cmpe295.meterimage.controller;
 
 import org.cmpe295.meterimage.model.MeterReadingRequest;
+import org.cmpe295.meterimage.model.MeterReadingResponse;
+import org.cmpe295.meterimage.service.MeterReadingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,18 +13,21 @@ import org.cmpe295.meterimage.service.MeterImageService;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/meter-images")
 public class MeterImagesController {
     @Autowired
     private MeterImageService meterImagesService;
+
     private static final Logger logger = LoggerFactory.getLogger(MeterImagesController.class);
+
     @PostMapping("/upload")
-    public ResponseEntity<Integer> uploadImage(@ModelAttribute MeterReadingRequest request) throws IOException {
+    public ResponseEntity<Long> uploadImage(@ModelAttribute MeterReadingRequest request) throws IOException {
 
             logger.info("Received image upload request: {}", request);
-            Integer predictedReadingValue = meterImagesService.uploadImage(request);
+            Long predictedReadingValue = meterImagesService.uploadImage(request);
             logger.info("Image uploaded successfully");
             return ResponseEntity.ok(predictedReadingValue);
 

@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.cmpe295.meterimage.model.MeterReadingRequest;
 import org.cmpe295.user.entity.MeterReading;
 import org.cmpe295.user.entity.UtilityAccount;
+import org.cmpe295.user.entity.enums.METER_READING_ENTRY_STATUS;
 import org.cmpe295.user.repository.MeterReadingRepository;
 import org.cmpe295.user.repository.UtilityAccountRepository;
 import org.slf4j.Logger;
@@ -41,11 +42,11 @@ public class MeterImageService {
 
     private static final Logger logger = LoggerFactory.getLogger(MeterImageService.class);
 
-    public Integer uploadImage(MeterReadingRequest request) throws IOException {
+    public Long uploadImage(MeterReadingRequest request) throws IOException {
         // Validate utilityAccountNumber, check if the account exists, etc.
         Optional<UtilityAccount> utilityAccount = utilityAccountRepository.findByUtilityAccountNumber(
                 request.getUtilityAccountNumber());
-        if (utilityAccount == null) {
+        if (!utilityAccount.isPresent()) {
             logger.error("Utility Account Not Found");
             throw new EntityNotFoundException("UtilityAccount not found for utility account number: " + request.getUtilityAccountNumber());
         }
@@ -56,17 +57,24 @@ public class MeterImageService {
         // Upload image to S3
         logger.info("Uploading the image file to S3 bucket");
         String imageUrl = s3Service.uploadFile(request.getImageFile(), request.getUtilityAccountNumber());
-        // Save the URL in the MeterReading entity
+        // Save the URL in the MeterReading org.cmpe295.utilityaccount.entity
         meterReading.setImageURL(imageUrl);
         //Get the predicted Meter Reading
         logger.info("Calling the inference endpoint to get meter reading predction");
         Integer predictedReadingValue = getPredictedReadingValue(request.getImageFile());
         logger.info("The predicted reading value: "+predictedReadingValue);
-        meterReading.setReadingValue(predictedReadingValue);
-        // Save the MeterReading entity to the database
-        meterReadingRepository.save(meterReading);
+        if (predictedReadingValue != null){
+            meterReading.setReadingValue(predictedReadingValue);
+            meterReading.setStatus(METER_READING_ENTRY_STATUS.PENDING_CONFIRMATION);
+        }else{
+            meterReading.setStatus(METER_READING_ENTRY_STATUS.ERROR);
+        }
+
+        // Save the MeterReading org.cmpe295.utilityaccount.entity to the database
+        MeterReading savedMeterReadingEntry = meterReadingRepository.save(meterReading);
+        logger.info(String.valueOf(savedMeterReadingEntry));
         logger.info("Meter Reading entry saved");
-        return predictedReadingValue;
+        return savedMeterReadingEntry.getReadingId();
     }
 
     private Integer getPredictedReadingValue(MultipartFile imageFile) {

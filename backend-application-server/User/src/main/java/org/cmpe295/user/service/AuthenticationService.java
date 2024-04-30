@@ -68,13 +68,13 @@ public class AuthenticationService {
                     .build();
             UtilityAccount savedUtilityAccount = utilityAccountRepository.save(newUtilityAccount);
         }
-        UtilityAccount savedUtilityAccount = utilityAccountRepository.getReferenceById(request.getUtilityAccountNumber());
+        Optional<UtilityAccount> savedUtilityAccount = utilityAccountRepository.findByUtilityAccountNumber(request.getUtilityAccountNumber());
         //Create user utility links
         User savedUser = repository.save(user);
         //Create the User UtilityLink
         UserUtilityLink userUtilityLink = UserUtilityLink.builder()
                 .user(savedUser)
-                .utilityAccount(savedUtilityAccount)
+                .utilityAccount(savedUtilityAccount.get())
                 .dateOfLink(LocalDate.now())
                 .isActive(true)
                 .build();

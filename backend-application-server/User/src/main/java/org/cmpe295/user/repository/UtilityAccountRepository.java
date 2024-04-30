@@ -15,6 +15,8 @@ public interface UtilityAccountRepository extends JpaRepository<UtilityAccount, 
             "WHERE ul.user.id = :userId AND ul.isActive = true " +
             "ORDER BY ul.dateOfLink DESC")
     Optional<UserUtilityAccountDetails> findFirstActiveUtilityAccountDetailsByUserId(@Param("userId") Long userId);
+    @Query("SELECT COUNT(uul) > 0 FROM UserUtilityLink uul WHERE uul.utilityAccount = :utilityAccount AND uul.isActive = true")
+    boolean hasActiveUserUtilityLinks(@Param("utilityAccount") UtilityAccount utilityAccount);
 }
 
 

@@ -44,7 +44,7 @@ public class AutheticationServiceTest {
     @Test
     public void testRegister() {
         // Given
-        RegisterRequest request = new RegisterRequest("John", "Doe", "john@example.com", "password", ROLE.ADMIN);
+        RegisterRequest request = RegisterRequest.builder().build();
         User user = User.builder()
                 .firstName(request.getFirstname())
                 .lastName(request.getLastname())
@@ -57,7 +57,12 @@ public class AutheticationServiceTest {
         when(jwtService.generateToken(any())).thenReturn("mockedJWTToken");
 
         // When
-        AuthenticationResponse response = authenticationService.register(request);
+        AuthenticationResponse response = null;
+        try {
+            response = authenticationService.register(request);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         // Then
         assertEquals("mockedJWTToken", response.getAccessToken());

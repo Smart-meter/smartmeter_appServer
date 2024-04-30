@@ -2,10 +2,7 @@ package org.cmpe295.user.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.aspectj.apache.bcel.classfile.Utility;
 
 import java.time.LocalDate;
@@ -15,6 +12,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Getter
 @Setter
+@Builder
 public class UserUtilityLink {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,9 +23,9 @@ public class UserUtilityLink {
 
     @JsonIgnoreProperties({"address","password"})
     @ManyToOne
-    @JoinColumn(name="userId", nullable=false, updatable = false, insertable = false,referencedColumnName = "id")
+    @JoinColumn(name="userId", nullable=false, updatable = true, insertable = true,referencedColumnName = "id")
     private User user;
     @ManyToOne
-    @JoinColumn(name="utilityAccountNumber", nullable=false, updatable = false, insertable = false,referencedColumnName = "utilityAccountNumber")
+    @JoinColumn(name="utilityAccountNumber", nullable=false, updatable = true, insertable = true,referencedColumnName = "utilityAccountNumber")
     private UtilityAccount utilityAccount;
 }

@@ -17,4 +17,12 @@ public class RegisterRequest {
     private String email;
     private String password;
     private ROLE role;
+    //Address details of the Utility Account
+    private String street;
+    private String aptSuite;
+    private String city;
+    private String state;
+    private String zipCode;
+    private String country = "USA"; // Default value
+    private Long utilityAccountNumber;
 }

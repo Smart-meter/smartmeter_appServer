@@ -27,9 +27,9 @@ public class MeterImagesController {
     public ResponseEntity<Long> uploadImage(@ModelAttribute MeterReadingRequest request) throws IOException {
 
             logger.info("Received image upload request: {}", request);
-            Long predictedReadingValue = meterImagesService.uploadImage(request);
+            Long meterReadingEntryId = meterImagesService.uploadImage(request);
             logger.info("Image uploaded successfully");
-            return ResponseEntity.ok(predictedReadingValue);
+            return ResponseEntity.ok(meterReadingEntryId);
 
 
     }

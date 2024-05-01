@@ -83,7 +83,7 @@ public class MeterImageService {
         logger.info("Meter Reading Coordinates"+savedMeterReadingEntry.getMeterImageMetadata().getYCoordinate());
         logger.info("Meter Reading Coordinates"+savedMeterReadingEntry.getMeterImageMetadata().getWidth());
         logger.info("Meter Reading Coordinates"+savedMeterReadingEntry.getMeterImageMetadata().getHeight());
-        return Long.valueOf(savedMeterReadingEntry.getReadingValue());//savedMeterReadingEntry.getReadingId();
+        return savedMeterReadingEntry.getReadingId();
     }
 
     private MeterReading getPredictedReadingValue(MultipartFile imageFile) throws IOException {

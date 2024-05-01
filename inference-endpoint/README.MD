@@ -12,3 +12,12 @@ Go to app folder
 Run uvicorn inference:app --log-level debug --port 8001
 
 The Swagger APIs can be seen and tested at  http://127.0.0.1:8001/docs
+
+
+## Requirements to be installed:
+
+pip3 install fastapi pillow transformers ultralytics
+
+or 
+
+pip install fastapi pillow transformers ultralytics

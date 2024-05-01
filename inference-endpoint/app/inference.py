@@ -1,70 +1,77 @@
 from fastapi import FastAPI, File, UploadFile
-from ultralytics import YOLO
-from paddleocr import PaddleOCR
-import os
-import requests
-import re
-import boto3
+from fastapi.responses import JSONResponse
 import cv2
 import numpy as np
-from io import BytesIO
 from PIL import Image
+from io import BytesIO
+from ultralytics import YOLO
+from transformers import TrOCRProcessor, VisionEncoderDecoderModel
 
-# AWS credentials
-aws_access_key_id = ""
-aws_secret_access_key = ""
-aws_region = "us-east-2"
-
-print("Import of libraries successful")
 app = FastAPI()
-# Initialize PaddleOCR
-ocr = PaddleOCR(use_angle_cls=True, lang='en')
-print("Initialization of PaddleOCR successful")
-# Load the YOLO model
+
+# Load YOLO model
 model_path = 'last.pt'
-model = YOLO(model_path)  # load a custom model
+model = YOLO(model_path)
 threshold = 0.5
-print("model loaded succeesfully")
+
+# Load TrOCR model and processor
+processor = TrOCRProcessor.from_pretrained('microsoft/trocr-large-printed')
+trocr_model = VisionEncoderDecoderModel.from_pretrained('microsoft/trocr-large-printed')
+
+@app.get("/")
+async def home():
+    return {"message": "Home page"}
 
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
-    #print('hiiiii')
-    upload_folder = "temp"
-    os.makedirs(upload_folder, exist_ok=True)  # Create the folder if it doesn't exist
-    file_path = os.path.join(upload_folder, file.filename)
-    print("Saving uploaded image to:", file_path)
-    with open(file_path, "wb") as image:
-        image.write(file.file.read())
-    print("Input file saved successfully into the temp folder")
-    # Perform inference
-    print("File Path:", file_path)
-    img = cv2.imread(file_path)
-    results = model(img)[0]
+    try:
+        contents = await file.read()
+        img = Image.open(BytesIO(contents)).convert('RGB')
+        img = np.array(img)
 
-    client = boto3.client('textract', region_name=aws_region, aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+        # Perform object detection using YOLOv8
+        results = model(img)[0]
+        cropped_images = []
 
-    # Read the image file
-    with open(file_path, "rb") as f:
-        image_bytes = f.read()
+        detections = []
 
-    # Call Amazon Textract
-    response = client.detect_document_text(
-        Document={
-            'Bytes': image_bytes
-        }
-    )
-    #print(response)
-    # Extract text from the response
-    extracted_text = ""
-    for item in response['Blocks']:
-        if item['BlockType'] == 'LINE':
-            extracted_text += item['Text'] + '\n'
+        for result in results.boxes.data.tolist():
+            x1, y1, x2, y2, score, class_id = result
 
-    result = extracted_text.strip()
-    print('meter')
-    print(result)
-    print('************************')
-    meterReading = re.findall(r'\b\d{5}\b', result)
-    print(f'The meter reading{meterReading}')
-    print('*')
-    return re.findall(r'\b\d{5}\b', result)
+            if score > threshold:
+                cv2.rectangle(img, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 4)
+                text = "{} {:.2f}".format(results.names[int(class_id)].upper(), score)
+                cv2.putText(img, text, (int(x1), int(y1 - 10)),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1.3, (0, 255, 0), 3, cv2.LINE_AA)
+
+                # Crop the region of interest from the image
+                roi = img[int(y1):int(y2), int(x1):int(x2)]
+                cropped_images.append(roi)
+
+                # Append detection information
+                detections.append({
+                    "coordinates": {"x1": int(x1), "y1": int(y1), "x2": int(x2), "y2": int(y2)},
+                    "predicted_text": None 
+                })
+
+        # Process the cropped images with TrOCR
+        texts = []
+        for i, cropped_img in enumerate(cropped_images):
+            cropped_pil_img = Image.fromarray(cropped_img)
+
+            # Process the cropped image
+            pixel_values = processor(images=cropped_pil_img, return_tensors="pt").pixel_values
+
+            # Generate text from the cropped image
+            generated_ids = trocr_model.generate(pixel_values)
+            generated_text = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
+            texts.append(generated_text)
+
+             # Update detection with predicted text
+            detections[i]["predicted_text"] = generated_text
+
+        #return JSONResponse(content={"predicted_texts": texts})
+        return JSONResponse(content={"detections": detections})
+    
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)

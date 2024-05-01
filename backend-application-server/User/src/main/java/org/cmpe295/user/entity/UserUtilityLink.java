@@ -13,6 +13,9 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @Builder
+@Table(uniqueConstraints={
+        @UniqueConstraint(columnNames = {"userId", "isActive"})
+})
 public class UserUtilityLink {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,4 +31,5 @@ public class UserUtilityLink {
     @ManyToOne
     @JoinColumn(name="utilityAccountNumber", nullable=false, updatable = true, insertable = true,referencedColumnName = "utilityAccountNumber")
     private UtilityAccount utilityAccount;
+
 }

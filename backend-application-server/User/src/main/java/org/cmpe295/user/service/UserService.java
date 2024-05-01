@@ -6,6 +6,7 @@ import org.cmpe295.user.entity.MeterReading;
 import org.cmpe295.user.entity.User;
 import org.cmpe295.user.entity.UtilityAccount;
 import org.cmpe295.user.entity.enums.ACTION;
+import org.cmpe295.user.entity.enums.METER_READING_ENTRY_STATUS;
 import org.cmpe295.user.exceptions.UtilityAccountNotFoundException;
 import org.cmpe295.user.model.MessageResponse;
 import org.cmpe295.user.model.UpdateUserRequest;
@@ -18,6 +19,7 @@ import org.cmpe295.user.security.service.JWTService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,6 +28,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -39,6 +42,8 @@ public class UserService {
     private UtilityAccountRepository utilityAccountRepository;
     @Autowired
     private MeterReadingRepository meterReadingRepository;
+    @Value("${reading.threshold.days}")
+    private int readingThresholdDays;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -115,6 +120,74 @@ public class UserService {
             throw e;
         }
         return response;
+    }
+
+    /**
+     * New service method to generate messages based on the latest non-discarded meter reading entry for a user.
+     * The following are the statuses possible for a meter reading entry
+     *      PENDING_VERIFICATION,
+     *      ERROR,
+     *      PENDING_CONFIRMATION,
+     *      DISCARDED,
+     *      MANUAL_ENTRY,
+     *      BILL_GENERATED
+     * Given a user, we can find the utility account - Optional<UserUtilityAccountDetails> utilityAccount = utilityAccountRepository.findFirstActiveUtilityAccountDetailsByUserId(user.getId());
+        - We get
+     * Give a user and a utility account number, we can get the latest non-discarded meter reading entry like this
+     * Optional<MeterReading> findFirstByUtilityAccountUtilityAccountNumberAndStatusNotOrderByDateOfReadingDesc(Long utilityAccountNumber, METER_READING_ENTRY_STATUS status);
+
+     * @param userName
+     * @return
+     */
+    public List<MessageResponse> generateMessagesForTheUser(String userName) {
+        List<MessageResponse> messages = new ArrayList<>();
+        Optional<User> userOptional = userRepository.findByEmail(userName);
+        if (userOptional.isPresent()) {
+            logger.info("Found the user corresponding to the username/email id");
+            Optional<UserUtilityAccountDetails> utilityAccount = utilityAccountRepository.findFirstActiveUtilityAccountDetailsByUserId(userOptional.get().getId());
+            //Find the last non-discarded meter reading entry for the utility account
+            if(utilityAccount.isPresent()){
+                Optional<MeterReading> lastReadingEntry = meterReadingRepository
+                        .findFirstByUtilityAccountUtilityAccountNumberAndStatusNotOrderByDateOfReadingDesc(utilityAccount.get().getUtilityAccount().getUtilityAccountNumber()
+                                , METER_READING_ENTRY_STATUS.DISCARDED);
+                if(lastReadingEntry.isPresent()){
+                    switch (lastReadingEntry.get().getStatus()){
+                        case ERROR -> messages.add(new MessageResponse(ACTION.MANUAL_METER_READING, "There is an error in detecting the meter reading. Please help the system by manually entering the reading details"));
+                        case PENDING_CONFIRMATION -> messages.add(new MessageResponse(ACTION.CONFIRM_AUTOMATED_METER_READING, "There is an error in detecting the meter reading. Please help the system by manually entering the reading details"));
+                        case PENDING_VERIFICATION -> messages.add(new MessageResponse(ACTION.NO_ACTION,"Waiting for system to finalize the reading"));
+                        case CONFIRMED -> messages.add(new MessageResponse(ACTION.BILL_AMOUNT_DUE, "Your bill amount is due. "));
+                        case MANUAL_ENTRY -> messages.add(new MessageResponse(ACTION.BILL_AMOUNT_DUE, "Your bill amount is due. "));
+                        case BILL_PAID -> {
+                            //If the bill is paid, check the date of the reading. If it has been more than 30 days, a new meter image is due
+                            if(checkReadingThreshold(lastReadingEntry.get().getDateOfReading())){
+                                messages.add(new MessageResponse(ACTION.CAPTURE_IMAGE,"Meter image upload is due. "));
+                            }else{
+                                messages.add(new MessageResponse(ACTION.NO_ACTION,"No messages. Everything up to date."));
+                            }
+                        }
+                    }
+                }else{
+                    messages.add(new MessageResponse(ACTION.CAPTURE_IMAGE,"Meter image upload is due. "));
+                }
+            }else{
+                //Send message to update the address to add a utility account
+                messages.add(new MessageResponse(ACTION.LINK_UTILITY_ACCOUNT, "Update your address to activate a utility account"));
+            }
+        }else{
+            throw new UsernameNotFoundException(userName);
+        }
+        if(messages.size()==0)
+            messages.add(new MessageResponse(ACTION.NO_ACTION,"No messages. Everything up to date"));
+        return messages;
+    }
+
+    public boolean checkReadingThreshold(LocalDate dateOfReading) {
+        LocalDate currentDate = LocalDate.now();
+        long daysDifference = ChronoUnit.DAYS.between(dateOfReading, currentDate);
+        if (daysDifference > readingThresholdDays) {
+            return true;
+        }
+        return false;
     }
 
     /**

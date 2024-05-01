@@ -1,14 +1,15 @@
 package org.cmpe295.meterimage.controller;
 
+import org.cmpe295.meterimage.model.MeterReadingEntryUpdateRequest;
 import org.cmpe295.meterimage.model.MeterReadingResponse;
 import org.cmpe295.meterimage.service.MeterReadingService;
+import org.cmpe295.user.entity.MeterImageMetadata;
+import org.cmpe295.user.entity.MeterReading;
+import org.cmpe295.user.entity.enums.METER_READING_ENTRY_STATUS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -25,6 +26,41 @@ public class MeterReadingController {
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+    }
+    @PutMapping("/{readingId}")
+    public ResponseEntity<MeterReadingResponse> updateMeterReading(@PathVariable Long readingId, @RequestBody MeterReadingEntryUpdateRequest request) {
+        MeterReading existingReading = meterReadingService.getMeterReadingEntryById(readingId);
+        if (existingReading == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        // Update readingValue if provided in the request
+        if (request.getReadingValue() != null) {
+            existingReading.setReadingValue(request.getReadingValue());
+        }
+
+        // Update meterImageMetadata if provided in the request
+        if (request.getMeterImageMetadata() != null) {
+            existingReading.setMeterImageMetadata(request.getMeterImageMetadata());
+        }
+        existingReading.setStatus(METER_READING_ENTRY_STATUS.MANUAL_ENTRY);
+
+        // Save the updated reading
+        MeterReadingResponse updatedReading = meterReadingService.updateMeterReading(existingReading);
+
+        return new ResponseEntity<>(updatedReading, HttpStatus.OK);
+    }
+    @PutMapping("/discard/{readingId}")
+    public ResponseEntity<Void> discardMeterReading(@PathVariable Long readingId) {
+        MeterReading existingReading = meterReadingService.getMeterReadingEntryById(readingId);
+        if (existingReading == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        // Update the status of the meter reading to "discarded"
+        existingReading.setStatus(METER_READING_ENTRY_STATUS.DISCARDED);
+        // Save the updated reading (if necessary, depending on your service implementation)
+        MeterReadingResponse updatedReading = meterReadingService.updateMeterReading(existingReading);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
     @GetMapping("/utility-account/{utilityAccountNumber}")
     public ResponseEntity<List<MeterReadingResponse>> getMeterReadingsByUtilityAccount(@PathVariable Long utilityAccountNumber) {

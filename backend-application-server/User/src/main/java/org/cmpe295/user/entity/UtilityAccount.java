@@ -1,5 +1,6 @@
 package org.cmpe295.user.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.cmpe295.user.entity.enums.METER_TYPE;
@@ -21,8 +22,10 @@ public class UtilityAccount {
 
     private METER_TYPE meterType;
     private Address address;
+    @JsonIgnore
     @OneToMany(mappedBy="utilityAccount")
     private List<UserUtilityLink> userUtilityLinks;
     @OneToMany(mappedBy="utilityAccount")
+    @JsonIgnore
     private List<MeterReading> meterReadings;
 }

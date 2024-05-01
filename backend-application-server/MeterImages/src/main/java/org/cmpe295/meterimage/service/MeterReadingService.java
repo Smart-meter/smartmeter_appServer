@@ -73,4 +73,13 @@ public class MeterReadingService {
             return null;
         }
     }
+
+    public MeterReading getMeterReadingEntryById(Long readingId) {
+        return meterReadingRepository.getReferenceById(readingId);
+    }
+
+    public MeterReadingResponse updateMeterReading(MeterReading existingReading) {
+        MeterReading updatedReading =  meterReadingRepository.save(existingReading);
+        return mapToDto(updatedReading);
+    }
 }

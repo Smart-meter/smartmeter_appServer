@@ -60,7 +60,7 @@ public class UserController {
         if (userDetails != null) {
             logger.info("Found user details " + userDetails);
             // Call the org.cmpe295.utilityaccount.service method to check conditions and generate messages
-            List<MessageResponse> messages = userService.generateMessages(userDetails.getUsername());
+            List<MessageResponse> messages = userService.generateMessagesForTheUser(userDetails.getUsername());
             // Check if there are any messages to send
             return ResponseEntity.ok(messages);
 

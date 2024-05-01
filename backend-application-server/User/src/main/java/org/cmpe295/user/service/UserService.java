@@ -72,9 +72,13 @@ public class UserService {
                 response.setCurrentUtilityAccountNumber(userUtilityAccountDetails.getUtilityAccount().getUtilityAccountNumber());
                 logger.info("Found the latest active utility account linked to the user: "+ userUtilityAccountDetails.getUtilityAccount().getUtilityAccountNumber());
                 response.setDateOfLink(userUtilityAccountDetails.getDateOfLink().toString());
+                /*
                 Optional<MeterReading> meterReading = meterReadingRepository.findFirstByUtilityAccountOrderByDateOfReadingDescReadingIdDesc(
                         utilityAccountRepository.findByUtilityAccountNumber(userUtilityAccountDetails.getUtilityAccount().getUtilityAccountNumber()).get()
                 );
+                */
+                //Get latest non-error reading from meter reading history
+                Optional<MeterReading> meterReading = meterReadingRepository.findFirstByUtilityAccountUtilityAccountNumberAndStatusNotOrderByDateOfReadingDesc(userUtilityAccountDetails.getUtilityAccount().getUtilityAccountNumber(),METER_READING_ENTRY_STATUS.ERROR);
                 if(meterReading.isPresent()){
                     MeterReading latestReading = meterReading.get();
                     response.setReadingValue(latestReading.getReadingValue()!=null?String.valueOf(latestReading.getReadingValue()):String.valueOf(0));
@@ -153,7 +157,7 @@ public class UserService {
                 if(lastReadingEntry.isPresent()){
                     switch (lastReadingEntry.get().getStatus()){
                         case ERROR -> messages.add(new MessageResponse(ACTION.MANUAL_METER_READING, "There is an error in detecting the meter reading. Please help the system by manually entering the reading details"));
-                        case PENDING_CONFIRMATION -> messages.add(new MessageResponse(ACTION.CONFIRM_AUTOMATED_METER_READING, "There is an error in detecting the meter reading. Please help the system by manually entering the reading details"));
+                        case PENDING_CONFIRMATION -> messages.add(new MessageResponse(ACTION.CONFIRM_AUTOMATED_METER_READING, "The meter reading entry is ready. Please confirm"));
                         case PENDING_VERIFICATION -> messages.add(new MessageResponse(ACTION.NO_ACTION,"Waiting for system to finalize the reading"));
                         case CONFIRMED -> messages.add(new MessageResponse(ACTION.BILL_AMOUNT_DUE, "Your bill amount is due. "));
                         case MANUAL_ENTRY -> messages.add(new MessageResponse(ACTION.BILL_AMOUNT_DUE, "Your bill amount is due. "));
@@ -189,7 +193,7 @@ public class UserService {
         }
         return false;
     }
-
+    //#################################################################################################################
     /**
      * End point to return messages for the user
      * @param username

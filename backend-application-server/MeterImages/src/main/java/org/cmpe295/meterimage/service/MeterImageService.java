@@ -2,11 +2,13 @@ package org.cmpe295.meterimage.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.cmpe295.meterimage.model.MeterReadingRequest;
+import org.cmpe295.user.entity.MeterImageMetadata;
 import org.cmpe295.user.entity.MeterReading;
 import org.cmpe295.user.entity.UtilityAccount;
 import org.cmpe295.user.entity.enums.METER_READING_ENTRY_STATUS;
@@ -61,28 +63,35 @@ public class MeterImageService {
         meterReading.setImageURL(imageUrl);
         //Get the predicted Meter Reading
         logger.info("Calling the inference endpoint to get meter reading predction");
-        Integer predictedReadingValue = getPredictedReadingValue(request.getImageFile());
-        logger.info("The predicted reading value: "+predictedReadingValue);
-        if (predictedReadingValue != null){
-            meterReading.setReadingValue(predictedReadingValue);
+        MeterReading meterReadingResponse = getPredictedReadingValue(request.getImageFile());
+        logger.info("The predicted reading value: "+meterReadingResponse.getReadingValue());
+        if(meterReadingResponse!=null){
+            meterReading.setReadingValue(meterReadingResponse.getReadingValue());
+            meterReading.setMeterImageMetadata(meterReadingResponse.getMeterImageMetadata());
             meterReading.setStatus(METER_READING_ENTRY_STATUS.PENDING_CONFIRMATION);
-        }else{
+        }
+        else{
             meterReading.setStatus(METER_READING_ENTRY_STATUS.ERROR);
         }
-
         // Save the MeterReading org.cmpe295.utilityaccount.entity to the database
         MeterReading savedMeterReadingEntry = meterReadingRepository.save(meterReading);
         logger.info(String.valueOf(savedMeterReadingEntry));
         logger.info("Meter Reading entry saved");
-        return savedMeterReadingEntry.getReadingId();
+        logger.info("Meter Reading Id"+savedMeterReadingEntry.getReadingId());
+        logger.info("Meter Reading Value"+savedMeterReadingEntry.getReadingValue());
+        logger.info("Meter Reading Coordinates"+savedMeterReadingEntry.getMeterImageMetadata().getXCoordinate());
+        logger.info("Meter Reading Coordinates"+savedMeterReadingEntry.getMeterImageMetadata().getYCoordinate());
+        logger.info("Meter Reading Coordinates"+savedMeterReadingEntry.getMeterImageMetadata().getWidth());
+        logger.info("Meter Reading Coordinates"+savedMeterReadingEntry.getMeterImageMetadata().getHeight());
+        return Long.valueOf(savedMeterReadingEntry.getReadingValue());//savedMeterReadingEntry.getReadingId();
     }
 
-    private Integer getPredictedReadingValue(MultipartFile imageFile) {
+    private MeterReading getPredictedReadingValue(MultipartFile imageFile) throws IOException {
         logger.info("Entered the prediction method");
         //Use the URL from prediction endpoint here
         String predictEndpoint = "http://127.0.0.1:8001/predict";
         logger.info(predictEndpoint);
-
+        MeterReading meterReadingResponse = new MeterReading();
         // Create the RestTemplate
         RestTemplate restTemplate = new RestTemplate();
         try {
@@ -115,38 +124,65 @@ public class MeterImageService {
             HttpStatus statusCode = (HttpStatus) responseEntity.getStatusCode();
             if (statusCode == HttpStatus.OK) {
                 String responseBody = responseEntity.getBody();
-                System.out.println("Response frm python-->"+responseBody);
+                System.out.println("Response from python-->" + responseBody);
                 try {
-                    // Parse JSON array
+                    // Parse JSON response
                     ObjectMapper mapper = new ObjectMapper();
-                    String[] values = mapper.readValue(responseBody, String[].class);
-                    // Extract integer from the string
-                    if (values.length > 0) {
-                        String valueString = values[0];
-                        // Remove non-numeric characters
-                        valueString = valueString.replaceAll("[^\\d]", "");
-                        logger.info("Meter Reading is "+valueString);
-                        // Convert to integer and return
-                        return Integer.parseInt(valueString);
+                    JsonNode rootNode = mapper.readTree(responseBody);
+
+                    // Extract predicted text and coordinates from detections array
+                    JsonNode detectionsNode = rootNode.get("detections");
+                    if (detectionsNode != null && detectionsNode.isArray() && !detectionsNode.isEmpty()) {
+                        JsonNode firstDetection = detectionsNode.get(0);
+                        String predictedText = firstDetection.get("predicted_text").asText();
+
+                        // Extract integer from predicted text
+                        String valueString = predictedText.replaceAll("[^\\d]", "");
+                        logger.info("Meter Reading is " + valueString);
+
+                        // Extract coordinates
+                        JsonNode coordinatesNode = firstDetection.get("coordinates");
+                        int x1 = coordinatesNode.get("x1").asInt();
+                        int y1 = coordinatesNode.get("y1").asInt();
+                        int x2 = coordinatesNode.get("x2").asInt();
+                        int y2 = coordinatesNode.get("y2").asInt();
+
+                        // Create MeterImageMetadata object with coordinates
+                        MeterImageMetadata meterImageMetadata = new MeterImageMetadata();
+                        meterImageMetadata.setXCoordinate(x1);
+                        meterImageMetadata.setYCoordinate(y1);
+                        meterImageMetadata.setWidth(x2-x1);
+                        meterImageMetadata.setHeight(y2-y1);
+
+                        // Create MeterReading object
+                        MeterReading meterReading = new MeterReading();
+                        meterReading.setReadingValue(Integer.parseInt(valueString));
+                        meterReading.setMeterImageMetadata(meterImageMetadata);
+
+                        // Return MeterReading
+                        return meterReading;
+                    } else {
+                        System.err.println("No detections found in the response.");
                     }
+                } catch (JsonProcessingException e) {
+                    // Handle JSON parsing error
+                    System.err.println("Error parsing JSON response: " + e.getMessage());
                 } catch (Exception e) {
-                    // Handle parsing error
-                    System.err.println("Error parsing response body: " + e.getMessage());
+                    // Handle other exceptions
+                    System.err.println("Error processing response: " + e.getMessage());
                 }
-                // Process response body, extract predicted value
-                // For example, you can convert responseBody to Integer and return it
             } else {
                 // Handle non-200 status code
                 System.err.println("Error: " + responseEntity.getStatusCodeValue() + " " + ((HttpStatus) responseEntity.getStatusCode()).getReasonPhrase());
             }
-        } catch (IOException e) {
+
+            // Return null if unable to extract reading and coordinates
+            return null;
+        } catch(IOException e) {
             e.printStackTrace();
-            // Handle IO exception
         }
-        // Return a default value or handle the error case
         return null;
     }
-
     // Method to parse the response and extract the predicted reading value
     private Integer parseResponse(String responseBody) {
         // Parse the JSON response and extract the "meter_reading" field

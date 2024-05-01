@@ -1,13 +1,15 @@
 from ml_pipeline.datasets import amr
 class DatasetFactory:
     def __init__(self, dataset_config, artifact_dir, logger):
+        logger.debug("initializing dataset")
         self.datasets = {
             "amr": {"class": amr.AMRDataset}
         }
+        logger.debug(dataset_config)
         #For the datasets in the configuration path, register the datasets\
         for dataset, config in dataset_config.items():
-            if dataset in self.datasets:
-                self.datasets[dataset]["path"] = config.path
+            if dataset in self.dataset:
+                self.datasets[dataset]["path"] = config.data_path
         self.artifact_dir = artifact_dir
         self.logger = logger
 

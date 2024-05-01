@@ -1,0 +1,14 @@
+syntax = "proto3";
+option java_multiple_files = true;
+message HelloWorldRequest {
+    // a name to greet, default is "World"
+    optional string name = 1;
+}
+
+message HelloWorldResponse {
+    string greeting = 1;
+}
+
+org.cmpe295.utilityaccount.service HelloWorldService {
+    rpc SayHello(HelloWorldRequest) returns (HelloWorldResponse);
+}

@@ -69,6 +69,7 @@ class MLPipeline:
     @pipeline_task
     def load_data(self) -> None:
         self.logger.info("Loading data...")
+        self.get_dataset()
         pass
 
     @pipeline_task
@@ -136,8 +137,9 @@ class MLPipeline:
 
     def get_dataset(self) -> None:
         self.dataset = dataset_factory.DatasetFactory(
-            self.config.items.datasets, self.artifact_dir, self.logger
+            self.config, self.artifact_dir, self.logger
         ).get(self.config.items.dataset)
+
 if __name__ == "__main__":
     #Create the parser object, initializing it with the description of the program
     parser = argparse.ArgumentParser(

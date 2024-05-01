@@ -22,10 +22,10 @@ trocr_model = VisionEncoderDecoderModel.from_pretrained('microsoft/trocr-large-p
 async def home():
     return {"message": "Home page"}
 
-@app.post("/predict/")
-async def predict(image: UploadFile = File(...)):
+@app.post("/predict")
+async def predict(file: UploadFile = File(...)):
     try:
-        contents = await image.read()
+        contents = await file.read()
         img = Image.open(BytesIO(contents)).convert('RGB')
         img = np.array(img)
 

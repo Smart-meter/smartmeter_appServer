@@ -22,3 +22,6 @@ We are developing a comprehensive, cloud-based automation system designed for no
 
 
 ![image](https://github.com/MeeraTresa/CMPE295_Ground_Work/assets/22830897/c4ca41e5-7d5a-414c-8217-a24c5e373e1c)
+
+![Flow_AMR_UI](https://github.com/Smart-meter/smartmeter_appServer/assets/22830897/1049989a-5ce1-4f05-bede-d805a7b79505)
+

@@ -1,28 +1,21 @@
 package org.cmpe295.user.service;
 
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
-import org.cmpe295.user.controller.UserController;
-import org.cmpe295.user.entity.MeterReading;
-import org.cmpe295.user.entity.User;
-import org.cmpe295.user.entity.UtilityAccount;
+import org.cmpe295.user.entity.*;
 import org.cmpe295.user.entity.enums.ACTION;
 import org.cmpe295.user.entity.enums.METER_READING_ENTRY_STATUS;
-import org.cmpe295.user.exceptions.UtilityAccountNotFoundException;
-import org.cmpe295.user.model.MessageResponse;
-import org.cmpe295.user.model.UpdateUserRequest;
-import org.cmpe295.user.model.UserDetailsResponse;
-import org.cmpe295.user.model.UserUtilityAccountDetails;
+import org.cmpe295.user.entity.enums.METER_TYPE;
+import org.cmpe295.user.exceptions.ActiveUserPresentForUtilityAccountException;
+import org.cmpe295.user.model.*;
 import org.cmpe295.user.repository.MeterReadingRepository;
 import org.cmpe295.user.repository.UserRepository;
+import org.cmpe295.user.repository.UserUtilityLinkRepository;
 import org.cmpe295.user.repository.UtilityAccountRepository;
-import org.cmpe295.user.security.service.JWTService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -34,6 +27,7 @@ import java.util.List;
 import java.util.Optional;
 @Service
 @RequiredArgsConstructor
+@AllArgsConstructor
 public class UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
     @Autowired
@@ -42,10 +36,12 @@ public class UserService {
     private UtilityAccountRepository utilityAccountRepository;
     @Autowired
     private MeterReadingRepository meterReadingRepository;
+    @Autowired
+    private UserUtilityLinkRepository userUtilityLinkRepository;
     @Value("${reading.threshold.days}")
     private int readingThresholdDays;
-
-    private final PasswordEncoder passwordEncoder;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     /**
      * End point to return user - utility accoubt details
@@ -193,7 +189,70 @@ public class UserService {
         }
         return false;
     }
+
+    public UserDetailsResponse updateUserAddress(String username, UpdateUserAddressRequest updateUserAddressRequest) {
+        logger.info("Inside update address endpoint");
+        //When update user address, first check if there is any active user associated with the utility acccount passed
+        //If yes, throw error
+        Optional<User> optionalUser = utilityAccountRepository.findActiveUserByUtilityAccountNumber(updateUserAddressRequest.getUtilityAccountNumber());
+        if(!optionalUser.isPresent()){
+            //Another user is not lin ked. Proceed with the linking
+            Optional<User> optionalCurrentUser = userRepository.findByEmail(username);
+            if(!optionalCurrentUser.isPresent()){
+                throw new UsernameNotFoundException("Cannot find the user in the system");
+            }
+            User user = optionalCurrentUser.get();
+            Address address = Address.builder()
+                    .country(updateUserAddressRequest.getCountry())
+                    .aptSuite(updateUserAddressRequest.getAptSuite())
+                    .street(updateUserAddressRequest.getStreet())
+                    .city(updateUserAddressRequest.getCity())
+                    .state(updateUserAddressRequest.getState())
+                    .zip(updateUserAddressRequest.getZipCode())
+                    .build();
+            //Set the new address for user
+            user.setAddress(address);
+            //Check if the user already has a link
+            Optional<UserUtilityLink> optionalUtilityAccountLink = utilityAccountRepository.findActiveUtilityAccountByUserName(username);
+            if(optionalUtilityAccountLink.isPresent()){
+                //Deactivate that link
+                UserUtilityLink utilityAccountLink = optionalUtilityAccountLink.get();
+                utilityAccountLink.setDateOfUnlink(LocalDate.now());
+                utilityAccountLink.setIsActive(false);
+                userUtilityLinkRepository.save(utilityAccountLink);
+            }
+            //FIgure out the next utility account for the user
+            UtilityAccount nextUtilityAccount = null;
+            Optional<UtilityAccount> optionalNextUtilityAccount = utilityAccountRepository.findByUtilityAccountNumber(updateUserAddressRequest.getUtilityAccountNumber());
+            if(!optionalNextUtilityAccount.isPresent()){
+                //Create the utility account
+                nextUtilityAccount = UtilityAccount.builder()
+                        .utilityAccountNumber(updateUserAddressRequest.getUtilityAccountNumber())
+                        .address(address)
+                        .meterType(METER_TYPE.ELECTRIC) //By default electric
+                        .build();
+                nextUtilityAccount = utilityAccountRepository.save(nextUtilityAccount);
+            }else{
+                nextUtilityAccount = optionalNextUtilityAccount.get();
+            }
+            //Save the utility link as well as the address
+            UserUtilityLink newUserUtilityLink = UserUtilityLink.builder().
+                    user(user)
+                    .utilityAccount(nextUtilityAccount)
+                    .dateOfLink(LocalDate.now())
+                    .isActive(true)
+                    .build();
+            UserUtilityLink savedLink = userUtilityLinkRepository.save(newUserUtilityLink);
+            user.getUtilityLinks().add(savedLink);
+            userRepository.save(user);
+
+        }else throw new ActiveUserPresentForUtilityAccountException("The utility account " + updateUserAddressRequest.getUtilityAccountNumber() + " is linked to another" +
+                " user. Cannot proceed with address change. Please contact Customer Support.");
+
+        return getUserDetails(username);
+    }
     //#################################################################################################################
+    //Unnecessary methods
     /**
      * End point to return messages for the user
      * @param username
@@ -267,4 +326,7 @@ public class UserService {
         }
         return false;
     }
+    //############################### End of Unnecessary Methods ######################
+
+
 }

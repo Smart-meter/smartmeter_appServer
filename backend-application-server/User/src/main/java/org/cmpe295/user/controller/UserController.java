@@ -3,6 +3,7 @@ package org.cmpe295.user.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.cmpe295.user.model.MessageResponse;
+import org.cmpe295.user.model.UpdateUserAddressRequest;
 import org.cmpe295.user.model.UpdateUserRequest;
 import org.cmpe295.user.model.UserDetailsResponse;
 import org.cmpe295.user.security.service.JWTService;
@@ -25,8 +26,8 @@ import java.util.Optional;
 @RequestMapping("/api/v1/user")
 @RequiredArgsConstructor
 public class UserController {
-    @Autowired
-    private UserService userService;
+
+    private final UserService userService;
     @Autowired
     private JWTService jwtService;
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
@@ -70,8 +71,6 @@ public class UserController {
     }
     @PutMapping("/update")
     public ResponseEntity<UserDetailsResponse> updateUser(@RequestBody UpdateUserRequest updateUserRequest) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        logger.info("Retrieved authentication info from the security context holder");
         UserDetails userDetails = getCurrentUserDetails();
         try{
             if (userDetails != null) {
@@ -86,6 +85,24 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
+    }
+    @PutMapping("/updateAddress")
+    public ResponseEntity<UserDetailsResponse> updateUserAddress(@RequestBody UpdateUserAddressRequest updateUserAddressRequest) {
+        logger.info("Hit the Update Address for authorized user endpoint");
+        UserDetails userDetails = getCurrentUserDetails();
+        logger.info("Update address request received for user "+userDetails.getUsername());
+        try{
+            if (userDetails != null) {
+                logger.info("Found user details " + userDetails);
+                //Call the user org.cmpe295.utilityaccount.service to update the user details
+                return  ResponseEntity.ok(userService.updateUserAddress(userDetails.getUsername(), updateUserAddressRequest));
+            }else{
+                //Did not find user details from the JWT token
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+        }catch(Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
 }

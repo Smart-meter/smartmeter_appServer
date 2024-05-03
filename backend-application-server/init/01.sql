@@ -1,3 +1,4 @@
-CREATE DATABASE IF NOT EXISTS utilitymanagement;
-CREATE DATABASE IF NOT EXISTS utilityaccount;
+CREATE SCHEMA IF NOT EXISTS utilitymanagement;
+CREATE SCHEMA IF NOT EXISTS utilityaccount;
+
 

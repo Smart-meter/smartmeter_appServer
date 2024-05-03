@@ -13,9 +13,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @Builder
-@Table(uniqueConstraints={
-        @UniqueConstraint(columnNames = {"userId", "isActive"})
-})
+
 public class UserUtilityLink {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

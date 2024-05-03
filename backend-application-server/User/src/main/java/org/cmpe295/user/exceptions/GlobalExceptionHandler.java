@@ -25,6 +25,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleUtilityAccountNotFoundException(UtilityAccountNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("UtilityAccount not found: " + ex.getMessage());
     }
+    @ExceptionHandler(ActiveUserPresentForUtilityAccountException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<String> handleActiveUserException(Exception ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Cannot perform the requested operation: " + ex.getMessage());
+    }
+
     // Generic exception handler
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

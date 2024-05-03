@@ -1,6 +1,7 @@
 package org.cmpe295.user.service;
 
 
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.cmpe295.user.entity.Address;
 import org.cmpe295.user.entity.User;
@@ -14,6 +15,7 @@ import org.cmpe295.user.repository.UserRepository;
 import org.cmpe295.user.repository.UserUtilityLinkRepository;
 import org.cmpe295.user.repository.UtilityAccountRepository;
 import org.cmpe295.user.security.service.JWTService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,14 +26,20 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@AllArgsConstructor
 public class AuthenticationService {
-    private final UserRepository repository;
-    private final UtilityAccountRepository utilityAccountRepository;
-    private final UserUtilityLinkRepository userUtilityLinkRepository;
-    private final JWTService jwtService;
-    private final AuthenticationManager authenticationManager;
-
-    private final PasswordEncoder passwordEncoder;
+    @Autowired
+    private UserRepository repository;
+    @Autowired
+    private UtilityAccountRepository utilityAccountRepository;
+    @Autowired
+    private UserUtilityLinkRepository userUtilityLinkRepository;
+    @Autowired
+    private  JWTService jwtService;
+    @Autowired
+    private AuthenticationManager authenticationManager;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
     public AuthenticationResponse register(RegisterRequest request) throws Exception {
 
         var user = User.builder()

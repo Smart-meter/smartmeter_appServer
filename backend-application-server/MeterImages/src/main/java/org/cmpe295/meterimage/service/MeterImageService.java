@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.cmpe295.meterimage.model.MeterReadingRequest;
@@ -34,13 +35,14 @@ import java.util.Map;
 import java.util.Optional;
 
 @Service
+@AllArgsConstructor
 public class MeterImageService {
     @Autowired
     private S3Service s3Service;
-    @Autowired
-    private MeterReadingRepository meterReadingRepository;
-    @Autowired
-    private UtilityAccountRepository utilityAccountRepository;
+
+    private final MeterReadingRepository meterReadingRepository;
+
+    private final UtilityAccountRepository utilityAccountRepository;
 
     private static final Logger logger = LoggerFactory.getLogger(MeterImageService.class);
 

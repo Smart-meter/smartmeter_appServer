@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.List;
 
@@ -59,6 +60,20 @@ public class MeterReadingController {
         }
         // Update the status of the meter reading to "discarded"
         existingReading.setStatus(METER_READING_ENTRY_STATUS.DISCARDED);
+        // Save the updated reading (if necessary, depending on your service implementation)
+        MeterReadingResponse updatedReading = meterReadingService.updateMeterReading(existingReading);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+    @PutMapping("/billpay/{readingId}")
+    public ResponseEntity<Void> payForMeterReading(@PathVariable Long readingId) {
+        MeterReading existingReading = meterReadingService.getMeterReadingEntryById(readingId);
+        if (existingReading == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        if(!(existingReading.getStatus() == METER_READING_ENTRY_STATUS.CONFIRMED || existingReading.getStatus() ==  METER_READING_ENTRY_STATUS.MANUAL_ENTRY)){
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST,"The meter reading has to be confirmed to pay the bill");
+        }
+        existingReading.setStatus(METER_READING_ENTRY_STATUS.BILL_PAID);
         // Save the updated reading (if necessary, depending on your service implementation)
         MeterReadingResponse updatedReading = meterReadingService.updateMeterReading(existingReading);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

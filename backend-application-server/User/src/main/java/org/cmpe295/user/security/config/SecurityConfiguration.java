@@ -66,7 +66,7 @@ public class SecurityConfiguration {
         return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req->req.requestMatchers("/api/v1/auth/**",
-                                "/login/**","/api/v1/home").permitAll()
+                                "/login/**","/api/v1/home","/meterimageservice","/userservice").permitAll()
                         .anyRequest()
                         .authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))

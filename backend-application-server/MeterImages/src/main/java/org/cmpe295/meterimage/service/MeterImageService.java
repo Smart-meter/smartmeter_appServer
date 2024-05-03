@@ -71,8 +71,9 @@ public class MeterImageService {
         //Get the predicted Meter Reading
         logger.info("Calling the inference endpoint to get meter reading predction");
         MeterReading meterReadingResponse = getPredictedReadingValue(request.getImageFile());
-        logger.info("The predicted reading value: "+meterReadingResponse.getReadingValue());
+        logger.info("Returned from the predict method");
         if(meterReadingResponse!=null){
+            logger.info("The predicted reading value: "+meterReadingResponse.getReadingValue());
             meterReading.setReadingValue(meterReadingResponse.getReadingValue());
             meterReading.setMeterImageMetadata(meterReadingResponse.getMeterImageMetadata());
             meterReading.setStatus(METER_READING_ENTRY_STATUS.PENDING_CONFIRMATION);
@@ -85,11 +86,11 @@ public class MeterImageService {
         logger.info(String.valueOf(savedMeterReadingEntry));
         logger.info("Meter Reading entry saved");
         logger.info("Meter Reading Id"+savedMeterReadingEntry.getReadingId());
-        logger.info("Meter Reading Value"+savedMeterReadingEntry.getReadingValue());
-        logger.info("Meter Reading Coordinates"+savedMeterReadingEntry.getMeterImageMetadata().getXCoordinate());
-        logger.info("Meter Reading Coordinates"+savedMeterReadingEntry.getMeterImageMetadata().getYCoordinate());
-        logger.info("Meter Reading Coordinates"+savedMeterReadingEntry.getMeterImageMetadata().getWidth());
-        logger.info("Meter Reading Coordinates"+savedMeterReadingEntry.getMeterImageMetadata().getHeight());
+        //logger.info("Meter Reading Value"+savedMeterReadingEntry.getReadingValue());
+        //logger.info("Meter Reading Coordinates"+savedMeterReadingEntry.getMeterImageMetadata().getXCoordinate());
+        //logger.info("Meter Reading Coordinates"+savedMeterReadingEntry.getMeterImageMetadata().getYCoordinate());
+        //logger.info("Meter Reading Coordinates"+savedMeterReadingEntry.getMeterImageMetadata().getWidth());
+        ///logger.info("Meter Reading Coordinates"+savedMeterReadingEntry.getMeterImageMetadata().getHeight());
         return savedMeterReadingEntry.getReadingId();
     }
 

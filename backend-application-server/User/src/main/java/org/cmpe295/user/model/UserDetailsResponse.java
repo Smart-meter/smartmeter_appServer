@@ -19,4 +19,5 @@ public class UserDetailsResponse {
     private String dateOfLink;
     private String dateOfReading;
     private String readingValue;
+    private Long readingId;
 }

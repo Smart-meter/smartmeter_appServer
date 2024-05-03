@@ -74,11 +74,12 @@ public class UserService {
                 );
                 */
                 //Get latest non-error reading from meter reading history
-                Optional<MeterReading> meterReading = meterReadingRepository.findFirstByUtilityAccountUtilityAccountNumberAndStatusNotOrderByDateOfReadingDesc(userUtilityAccountDetails.getUtilityAccount().getUtilityAccountNumber(),METER_READING_ENTRY_STATUS.ERROR);
+                Optional<MeterReading> meterReading = meterReadingRepository.findFirstByUtilityAccountUtilityAccountNumberAndStatusNotOrderByDateOfReadingDesc(userUtilityAccountDetails.getUtilityAccount().getUtilityAccountNumber(),METER_READING_ENTRY_STATUS.DISCARDED);
                 if(meterReading.isPresent()){
                     MeterReading latestReading = meterReading.get();
                     response.setReadingValue(latestReading.getReadingValue()!=null?String.valueOf(latestReading.getReadingValue()):String.valueOf(0));
                     response.setDateOfReading(latestReading.getDateOfReading()!=null?latestReading.getDateOfReading().toString():LocalDate.now().toString());
+                    response.setReadingId(latestReading.getReadingId());
                 }
             }
 

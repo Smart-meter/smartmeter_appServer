@@ -37,6 +37,7 @@ public class MeterReadingController {
         // Update readingValue if provided in the request
         if (request.getReadingValue() != null) {
             existingReading.setReadingValue(request.getReadingValue());
+            existingReading.setBillAmount((float) (existingReading.getReadingValue()*0.01));
         }
 
         // Update meterImageMetadata if provided in the request
@@ -58,6 +59,19 @@ public class MeterReadingController {
         }
         // Update the status of the meter reading to "discarded"
         existingReading.setStatus(METER_READING_ENTRY_STATUS.DISCARDED);
+        // Save the updated reading (if necessary, depending on your service implementation)
+        MeterReadingResponse updatedReading = meterReadingService.updateMeterReading(existingReading);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+    @PutMapping("/confirm/{readingId}")
+    public ResponseEntity<Void> confirmMeterReading(@PathVariable Long readingId) {
+        MeterReading existingReading = meterReadingService.getMeterReadingEntryById(readingId);
+        if (existingReading == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        // Update the status of the meter reading to "discarded"
+        existingReading.setStatus(METER_READING_ENTRY_STATUS.CONFIRMED);
+        existingReading.setBillAmount((float) (existingReading.getReadingValue()*0.01));
         // Save the updated reading (if necessary, depending on your service implementation)
         MeterReadingResponse updatedReading = meterReadingService.updateMeterReading(existingReading);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

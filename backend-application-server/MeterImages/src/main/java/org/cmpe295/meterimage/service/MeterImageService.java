@@ -18,6 +18,7 @@ import org.cmpe295.user.repository.UtilityAccountRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
@@ -35,16 +36,19 @@ import java.util.Map;
 import java.util.Optional;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class MeterImageService {
     @Autowired
     private S3Service s3Service;
+    @Value("${prediction.url}")
+    private String predictEndpoint;
 
     private final MeterReadingRepository meterReadingRepository;
 
     private final UtilityAccountRepository utilityAccountRepository;
 
     private static final Logger logger = LoggerFactory.getLogger(MeterImageService.class);
+
 
     public Long uploadImage(MeterReadingRequest request) throws IOException {
         // Validate utilityAccountNumber, check if the account exists, etc.
@@ -91,7 +95,7 @@ public class MeterImageService {
     private MeterReading getPredictedReadingValue(MultipartFile imageFile) throws IOException {
         logger.info("Entered the prediction method");
         //Use the URL from prediction endpoint here
-        String predictEndpoint = "http://127.0.0.1:8001/predict";
+        //String predictEndpoint = predictionUrl;
         logger.info(predictEndpoint);
         MeterReading meterReadingResponse = new MeterReading();
         // Create the RestTemplate

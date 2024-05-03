@@ -13,6 +13,8 @@ public class AWSConfig {
 
     @Value("${aws.s3.bucket-name}")
     private String s3BucketName;
+    @Value("${prediction.url}")
+    private String predictionUrl;
     @Bean
     public AWSCredentialsProvider awsCredentialsProvider() {
         return DefaultAWSCredentialsProviderChain.getInstance();
@@ -25,5 +27,10 @@ public class AWSConfig {
     @Bean
     public String s3BucketName() {
         return s3BucketName;
+    }
+
+    @Bean
+    public String predictionUrl(){
+        return predictionUrl;
     }
 }

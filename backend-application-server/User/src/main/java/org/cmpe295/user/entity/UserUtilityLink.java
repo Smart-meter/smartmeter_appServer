@@ -6,6 +6,7 @@ import lombok.*;
 import org.aspectj.apache.bcel.classfile.Utility;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @NoArgsConstructor
@@ -18,8 +19,8 @@ public class UserUtilityLink {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
-    LocalDate dateOfLink;
-    LocalDate dateOfUnlink;
+    LocalDateTime dateOfLink;
+    LocalDateTime dateOfUnlink;
     private Boolean isActive;
 
     @JsonIgnoreProperties({"address","password"})

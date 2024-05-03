@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
 
@@ -61,7 +62,7 @@ public class MeterImageService {
         MeterReading meterReading = new MeterReading();
         meterReading.setUtilityAccount(utilityAccount.get());
         // Set other properties as needed, e.g., dateOfReading, readingValue, etc.
-        meterReading.setDateOfReading(LocalDate.now());
+        meterReading.setDateOfReading(LocalDateTime.now());
         // Upload image to S3
         logger.info("Uploading the image file to S3 bucket");
         String imageUrl = s3Service.uploadFile(request.getImageFile(), request.getUtilityAccountNumber());

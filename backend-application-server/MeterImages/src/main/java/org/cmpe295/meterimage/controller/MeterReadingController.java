@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -39,6 +40,7 @@ public class MeterReadingController {
         if (request.getReadingValue() != null) {
             existingReading.setReadingValue(request.getReadingValue());
             existingReading.setBillAmount((float) (existingReading.getReadingValue()*0.01));
+            existingReading.setDateOfBillGeneration(LocalDateTime.now());
         }
 
         // Update meterImageMetadata if provided in the request
@@ -87,6 +89,7 @@ public class MeterReadingController {
         // Update the status of the meter reading to "discarded"
         existingReading.setStatus(METER_READING_ENTRY_STATUS.CONFIRMED);
         existingReading.setBillAmount((float) (existingReading.getReadingValue()*0.01));
+        existingReading.setDateOfBillGeneration(LocalDateTime.now());
         // Save the updated reading (if necessary, depending on your service implementation)
         MeterReadingResponse updatedReading = meterReadingService.updateMeterReading(existingReading);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

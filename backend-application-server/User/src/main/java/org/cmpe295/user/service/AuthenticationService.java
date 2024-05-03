@@ -22,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -83,7 +84,7 @@ public class AuthenticationService {
         UserUtilityLink userUtilityLink = UserUtilityLink.builder()
                 .user(savedUser)
                 .utilityAccount(savedUtilityAccount.get())
-                .dateOfLink(LocalDate.now())
+                .dateOfLink(LocalDateTime.now())
                 .isActive(true)
                 .build();
         userUtilityLinkRepository.save(userUtilityLink);

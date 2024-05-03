@@ -5,6 +5,7 @@ import lombok.*;
 import org.cmpe295.user.entity.enums.METER_READING_ENTRY_STATUS;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -16,8 +17,8 @@ public class MeterReading {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long readingId;
-    private LocalDate dateOfReading;
-    private LocalDate dateOfBillGeneration;
+    private LocalDateTime dateOfReading;
+    private LocalDateTime dateOfBillGeneration;
     private METER_READING_ENTRY_STATUS status;
     private String imageURL;
     private Float billAmount;

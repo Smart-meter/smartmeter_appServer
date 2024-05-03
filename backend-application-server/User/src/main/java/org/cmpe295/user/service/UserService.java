@@ -21,6 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,7 +68,7 @@ public class UserService {
                 UserUtilityAccountDetails userUtilityAccountDetails = utilityAccount.get();
                 response.setCurrentUtilityAccountNumber(userUtilityAccountDetails.getUtilityAccount().getUtilityAccountNumber());
                 logger.info("Found the latest active utility account linked to the user: "+ userUtilityAccountDetails.getUtilityAccount().getUtilityAccountNumber());
-                response.setDateOfLink(userUtilityAccountDetails.getDateOfLink().toString());
+                response.setDateOfLink(userUtilityAccountDetails.getDateOfLink().toLocalDate().toString());
                 /*
                 Optional<MeterReading> meterReading = meterReadingRepository.findFirstByUtilityAccountOrderByDateOfReadingDescReadingIdDesc(
                         utilityAccountRepository.findByUtilityAccountNumber(userUtilityAccountDetails.getUtilityAccount().getUtilityAccountNumber()).get()
@@ -78,7 +79,7 @@ public class UserService {
                 if(meterReading.isPresent()){
                     MeterReading latestReading = meterReading.get();
                     response.setReadingValue(latestReading.getReadingValue()!=null?String.valueOf(latestReading.getReadingValue()):String.valueOf(0));
-                    response.setDateOfReading(latestReading.getDateOfReading()!=null?latestReading.getDateOfReading().toString():LocalDate.now().toString());
+                    response.setDateOfReading(latestReading.getDateOfReading()!=null?latestReading.getDateOfReading().toLocalDate().toString():LocalDate.now().toString());
                     response.setReadingId(latestReading.getReadingId());
                 }
             }
@@ -160,7 +161,7 @@ public class UserService {
                         case MANUAL_ENTRY -> messages.add(new MessageResponse(ACTION.BILL_AMOUNT_DUE, "Your bill amount is due. "));
                         case BILL_PAID -> {
                             //If the bill is paid, check the date of the reading. If it has been more than 30 days, a new meter image is due
-                            if(checkReadingThreshold(lastReadingEntry.get().getDateOfReading())){
+                            if(checkReadingThreshold(lastReadingEntry.get().getDateOfReading().toLocalDate())){
                                 messages.add(new MessageResponse(ACTION.CAPTURE_IMAGE,"Meter image upload is due. "));
                             }else{
                                 messages.add(new MessageResponse(ACTION.NO_ACTION,"No messages. Everything up to date."));
@@ -218,7 +219,7 @@ public class UserService {
             if(optionalUtilityAccountLink.isPresent()){
                 //Deactivate that link
                 UserUtilityLink utilityAccountLink = optionalUtilityAccountLink.get();
-                utilityAccountLink.setDateOfUnlink(LocalDate.now());
+                utilityAccountLink.setDateOfUnlink(LocalDateTime.now());
                 utilityAccountLink.setIsActive(false);
                 userUtilityLinkRepository.save(utilityAccountLink);
             }
@@ -240,7 +241,7 @@ public class UserService {
             UserUtilityLink newUserUtilityLink = UserUtilityLink.builder().
                     user(user)
                     .utilityAccount(nextUtilityAccount)
-                    .dateOfLink(LocalDate.now())
+                    .dateOfLink(LocalDateTime.now())
                     .isActive(true)
                     .build();
             UserUtilityLink savedLink = userUtilityLinkRepository.save(newUserUtilityLink);
@@ -293,7 +294,7 @@ public class UserService {
                 );
                 if(meterReading.isPresent()){
                     MeterReading latestReading = meterReading.get();
-                    LocalDate lastUploadDate = latestReading.getDateOfReading();
+                    LocalDate lastUploadDate = latestReading.getDateOfReading().toLocalDate();
                     LocalDate currentDate = LocalDate.now();
                     return lastUploadDate.isBefore(currentDate.minusDays(30));
                 }else{

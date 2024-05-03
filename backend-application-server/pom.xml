@@ -8,7 +8,7 @@
         <module>User</module>
         <module>MeterImages</module>
         <module>UtilityAccountManagement</module>
-        <module>Integration</module>
+        <!-- <module>Integration</module> -->
     </modules>
     <groupId>org.cmpe295</groupId>
     <artifactId>backend-application-server</artifactId>

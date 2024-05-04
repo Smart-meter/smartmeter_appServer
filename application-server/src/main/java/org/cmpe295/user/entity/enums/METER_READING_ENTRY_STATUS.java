@@ -1,0 +1,11 @@
+package org.cmpe295.user.entity.enums;
+
+public enum METER_READING_ENTRY_STATUS {
+    PENDING_VERIFICATION,
+    ERROR,
+    PENDING_CONFIRMATION,
+    DISCARDED,
+    MANUAL_ENTRY,
+    CONFIRMED,
+    BILL_PAID
+}

@@ -80,56 +80,6 @@ process_files(test_images, 'test')
 
 print('Dataset has been downloaded and organized into local folders.')
 
-
-def get_latest_model_version(bucket, prefix):
-    """
-    Retrieve the latest model version directory from an S3 bucket based on timestamp.
-
-    Args:
-    - bucket (str): The name of the S3 bucket.
-    - prefix (str): The prefix where model directories are stored.
-    
-    Returns:
-    - str: The full S3 key for the latest model file.
-    """
-    paginator = s3.get_paginator('list_objects_v2')
-    pages = paginator.paginate(Bucket=bucket, Prefix=prefix, Delimiter='/')
-
-    latest_version = None
-    for page in pages:
-        prefixes = sorted([p['Prefix'] for p in page.get('CommonPrefixes', [])], reverse=True)
-        if prefixes:
-            latest_version = prefixes[0]
-            break
-
-    if latest_version:
-        return latest_version + 'weights/model.pt'  # Adjust this if your structure is different
-    else:
-        raise Exception("No model directories found.")
-
-def download_model(s3_bucket, s3_object_key, local_file_path):
-    """
-    Download a model file from S3 to a local file path.
-
-    Args:
-    - s3_bucket (str): The name of the S3 bucket.
-    - s3_object_key (str): The full path key of the S3 object.
-    - local_file_path (str): The local path to save the file to.
-    """
-    s3.download_file(Bucket=s3_bucket, Key=s3_object_key, Filename=local_file_path)
-    print(f"Downloaded {s3_object_key} from S3 bucket {s3_bucket} to {local_file_path}")
-
-# Example usage:
-bucket_name = 'your-s3-bucket-name'
-prefix = 'training_artifacts/'
-
-try:
-    latest_model_key = get_latest_model_version(bucket_name, prefix)
-    local_path_to_save = '/path/to/local/model.pt'  # Define your local path where you want to save the model
-    download_model(bucket_name, latest_model_key, local_path_to_save)
-except Exception as e:
-    print(str(e))
-
 def get_latest_model_version(bucket, prefix):
     """Retrieve the latest model version directory from an S3 bucket."""
     paginator = s3.get_paginator('list_objects_v2')
